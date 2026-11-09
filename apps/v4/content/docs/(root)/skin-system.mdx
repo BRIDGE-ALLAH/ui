@@ -80,7 +80,7 @@ export function EditorialPanel() {
 
 ## Apply, save, and export
 
-The studio stores the current theme in browser-local storage. Mounted `SkinProvider` instances listen for studio changes and update in the same tab. The provider also respects the app's resolved light/dark mode.
+The v4 site root is wrapped in `SkinProvider`, so saving a visual identity in Skin Studio updates the whole documentation website—not just the preview. The current theme is stored in browser-local storage. Mounted providers listen for studio changes and update in the same tab, and the provider respects the app's resolved light/dark mode. Use the same provider in another app to carry the identity into that product.
 
 - **CSS variables** export the semantic token contract and art-direction variables.
 - **Registry JSON** exports a shadcn `registry:theme` item.

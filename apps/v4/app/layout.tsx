@@ -6,6 +6,7 @@ import { META_THEME_COLORS, siteConfig } from "@/lib/config"
 import { DOCS_SIDEBAR_SCROLL_RESTORE_SCRIPT } from "@/lib/docs-sidebar-scroll"
 import { fontVariables } from "@/lib/fonts"
 import { ActiveThemeProvider } from "@/components/active-theme"
+import { SkinProvider } from "@/components/skin-provider"
 import { Analytics } from "@/components/analytics"
 import { TailwindIndicator } from "@/components/tailwind-indicator"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -108,7 +109,8 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <ActiveThemeProvider>
-            <NuqsAdapter>
+            <SkinProvider>
+              <NuqsAdapter>
               <BaseTooltipProvider delay={0}>
                 <RadixTooltipProvider delayDuration={0}>
                   {children}
@@ -117,8 +119,9 @@ export default function RootLayout({
                 </RadixTooltipProvider>
               </BaseTooltipProvider>
             </NuqsAdapter>
-            <TailwindIndicator />
-            <Analytics />
+              <TailwindIndicator />
+              <Analytics />
+            </SkinProvider>
           </ActiveThemeProvider>
         </ThemeProvider>
       </body>
