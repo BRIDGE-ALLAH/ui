@@ -460,3 +460,174 @@
     @apply rounded-xl border-none bg-clip-padding shadow-2xl ring-4 ring-neutral-200/80 dark:bg-neutral-900 dark:ring-neutral-800;
   }
 }
+
+
+/*
+ * Skin System — optional, scoped visual grammar.
+ * Components continue to use shadcn semantic tokens; the additional
+ * selectors below add art-direction without replacing component behavior.
+ */
+.skin-root,
+[data-skin] {
+  color: var(--foreground);
+  font-family: var(--skin-body-font, var(--font-sans));
+}
+
+[data-skin] :is(h1, h2, h3, h4, .skin-display) {
+  font-family: var(--skin-heading-font, var(--font-heading));
+  letter-spacing: var(--skin-heading-tracking, -0.025em);
+}
+
+[data-skin] :is([data-slot="card"], .skin-surface--card) {
+  border-radius: var(--skin-card-radius, var(--radius));
+  box-shadow: var(--skin-card-shadow, var(--skin-shadow, none));
+  transition:
+    border-color var(--skin-motion-duration, 0ms) ease,
+    box-shadow var(--skin-motion-duration, 0ms) ease,
+    transform var(--skin-motion-duration, 0ms) ease;
+}
+
+[data-skin] :is([data-slot="button"], button.skin-control, input.skin-control, .skin-control) {
+  border-radius: var(--skin-control-radius, var(--radius));
+}
+
+[data-skin] [data-skin-surface],
+[data-skin] .skin-surface {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: var(--skin-card-radius, var(--radius));
+  background: var(--card);
+  color: var(--card-foreground);
+}
+
+[data-skin] .skin-surface--hero {
+  min-height: 18rem;
+  background:
+    radial-gradient(ellipse at 82% 22%, color-mix(in oklab, var(--primary) 14%, transparent), transparent 48%),
+    var(--background);
+}
+
+[data-skin] .skin-surface--panel {
+  background: color-mix(in oklab, var(--card) 88%, var(--muted));
+}
+
+[data-skin] .skin-surface__artwork {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  color: var(--primary);
+  opacity: var(--skin-art-opacity, 0.4);
+}
+
+[data-skin] .skin-surface__content {
+  position: relative;
+  z-index: 1;
+}
+
+[data-skin] .skin-hero__copy {
+  position: relative;
+  z-index: 1;
+  max-width: 48rem;
+}
+
+[data-skin] .skin-hero__eyebrow {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+[data-skin] .skin-hero__title {
+  max-width: 14ch;
+  font-size: clamp(2.4rem, 7vw, 5.8rem);
+  line-height: 0.96;
+  letter-spacing: var(--skin-heading-tracking, -0.04em);
+}
+
+[data-skin] .skin-hero__description {
+  max-width: 42rem;
+  color: var(--muted-foreground);
+  line-height: 1.7;
+}
+
+[data-skin-texture="paper"] .skin-surface--hero::after,
+[data-skin-texture="grain"] .skin-surface--hero::after {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  content: "";
+  pointer-events: none;
+  opacity: var(--skin-texture-opacity, 0.12);
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent 0,
+    transparent 3px,
+    color-mix(in oklab, var(--foreground) 8%, transparent) 4px
+  );
+  mix-blend-mode: multiply;
+}
+
+[data-skin-texture="mesh"] .skin-surface--hero {
+  background-image:
+    radial-gradient(at 12% 18%, color-mix(in oklab, var(--primary) 15%, transparent), transparent 38%),
+    radial-gradient(at 88% 72%, color-mix(in oklab, var(--chart-2) 12%, transparent), transparent 34%);
+}
+
+[data-skin-composition="editorial"] .skin-hero__title {
+  max-width: 11ch;
+}
+
+[data-skin-composition="cinematic"] .skin-surface--hero {
+  min-height: 23rem;
+  background-size: cover;
+}
+
+[data-skin-composition="instrument"] .skin-surface--hero {
+  border-radius: 0.5rem;
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--border) 60%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--border) 60%, transparent) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+[data-skin-shape="cut"] [data-skin-surface],
+[data-skin-shape="cut"] .skin-surface {
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+  border-radius: 0;
+}
+
+[data-skin-shape="sharp"] [data-skin-surface],
+[data-skin-shape="sharp"] .skin-surface {
+  border-radius: 2px;
+}
+
+[data-skin-shape="pill"] [data-skin-surface],
+[data-skin-shape="pill"] .skin-surface {
+  border-radius: 2rem;
+}
+
+[data-skin-surface="card"] {
+  box-shadow: var(--skin-card-shadow, none);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-skin] *,
+  [data-skin] *::before,
+  [data-skin] *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* Skin root paints its isolated application surface from semantic tokens. */
+.skin-root {
+  min-width: 0;
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--skin-body-font, var(--font-sans));
+}

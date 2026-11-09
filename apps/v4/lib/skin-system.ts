@@ -1,6 +1,26 @@
 import type { CSSProperties } from "react"
 
 export type SkinMode = "light" | "dark"
+export type SkinArtworkKind = "botanical" | "orbit" | "topographic" | "geometry" | "collage" | "stained-glass" | "none"
+export type SkinNarrative = {
+  title: string
+  thesis: string
+  atmosphere: string
+  voice: string
+  keywords: string[]
+}
+export type SkinArtDirection = {
+  name: string
+  narrative: SkinNarrative
+  artwork: SkinArtworkKind
+  composition: "editorial" | "cinematic" | "instrument" | "gallery"
+  texture: "paper" | "grain" | "mesh" | "none"
+  shape: "soft" | "sharp" | "pill" | "cut"
+  surface: "paper" | "glass" | "matte" | "outline"
+  motion: "still" | "slow" | "kinetic"
+  headingFont: string
+  tracking: "tight" | "normal" | "wide"
+}
 export type SkinTokens = {
   background: string; foreground: string; card: string; cardForeground: string
   popover: string; popoverForeground: string; primary: string; primaryForeground: string
@@ -12,8 +32,10 @@ export type SkinTokens = {
 export type SkinTheme = {
   name: string; label: string; description?: string; radius: number; font: string
   density: "comfortable" | "compact"; shadow: "soft" | "medium" | "sharp" | "none"
-  light: SkinTokens; dark: SkinTokens
+  light: SkinTokens; dark: SkinTokens; artDirection?: SkinArtDirection
 }
+export const SKIN_STORAGE_KEY = "shadcn-skin"
+
 const neutralLight: SkinTokens = {
   background:"#ffffff",foreground:"#171717",card:"#ffffff",cardForeground:"#171717",
   popover:"#ffffff",popoverForeground:"#171717",primary:"#171717",primaryForeground:"#fafafa",
@@ -30,23 +52,63 @@ const neutralDark: SkinTokens = {
   border:"#404040",input:"#525252",ring:"#737373",sidebar:"#202020",sidebarForeground:"#fafafa",
   chart1:"#60a5fa",chart2:"#4ade80",chart3:"#fbbf24",
 }
-function palette(label:string,primary:string,primaryForeground:string,darkPrimary:string,darkPrimaryForeground:string,background="#ffffff",darkBackground="#171717",foreground="#171717",darkForeground="#fafafa"):SkinTheme {
-  return {name:label.toLowerCase().replace(/[^a-z0-9]+/g,"-"),label,radius:10,font:"Inter, ui-sans-serif, system-ui, sans-serif",density:"comfortable",shadow:"soft",
+export const DEFAULT_ART_DIRECTION: SkinArtDirection = {
+  name:"Quiet editorial",
+  narrative:{
+    title:"Clarity with a human pulse",
+    thesis:"A calm canvas where the content is the protagonist.",
+    atmosphere:"Considered, tactile, quietly confident.",
+    voice:"Precise, warm, and unhurried.",
+    keywords:["clarity","craft","editorial"],
+  },
+  artwork:"topographic",composition:"editorial",texture:"paper",shape:"soft",
+  surface:"paper",motion:"still",
+  headingFont:"Georgia, 'Times New Roman', serif",tracking:"tight",
+}
+function art(
+  name:string,title:string,thesis:string,atmosphere:string,voice:string,
+  keywords:string[],artwork:SkinArtworkKind,composition:SkinArtDirection["composition"],
+  texture:SkinArtDirection["texture"],shape:SkinArtDirection["shape"],
+  surface:SkinArtDirection["surface"],motion:SkinArtDirection["motion"],
+  headingFont:string,tracking:SkinArtDirection["tracking"]
+):SkinArtDirection {
+  return {name,narrative:{title,thesis,atmosphere,voice,keywords},artwork,composition,texture,shape,surface,motion,headingFont,tracking}
+}
+function palette(
+  label:string,primary:string,primaryForeground:string,darkPrimary:string,darkPrimaryForeground:string,
+  background="#ffffff",darkBackground="#171717",foreground="#171717",darkForeground="#fafafa",
+  artDirection:SkinArtDirection=DEFAULT_ART_DIRECTION
+):SkinTheme {
+  return {
+    name:label.toLowerCase().replace(/[^a-z0-9]+/g,"-"),label,
+    radius:10,font:"Inter, ui-sans-serif, system-ui, sans-serif",
+    density:"comfortable",shadow:"soft",artDirection,
     light:{...neutralLight,background,foreground,primary,primaryForeground,ring:primary},
-    dark:{...neutralDark,background:darkBackground,foreground:darkForeground,primary:darkPrimary,primaryForeground:darkPrimaryForeground,ring:darkPrimary}}
+    dark:{...neutralDark,background:darkBackground,foreground:darkForeground,primary:darkPrimary,primaryForeground:darkPrimaryForeground,ring:darkPrimary},
+  }
 }
 export const SKIN_PRESETS:SkinTheme[]=[
-  {...palette("Neutral","#171717","#ffffff","#fafafa","#262626"),name:"neutral"},
-  palette("Ocean","#0369a1","#ffffff","#38bdf8","#082f49","#f8fcff","#071923","#102a3a","#e6f7ff"),
-  palette("Emerald","#047857","#ffffff","#34d399","#052e24","#f7fdf9","#071b15","#12372b","#e8fff4"),
-  palette("Rose","#e11d48","#ffffff","#fb7185","#4c0519","#fffafb","#211016","#3b1722","#fff1f4"),
-  palette("Violet","#7c3aed","#ffffff","#a78bfa","#2e1065","#fcfaff","#171126","#271b3c","#f4edff"),
-  palette("Amber","#b45309","#ffffff","#fbbf24","#451a03","#fffdf7","#21190b","#3d2b13","#fff6df"),
-  palette("Nord","#5e81ac","#ffffff","#88c0d0","#2e3440","#eceff4","#2e3440","#2e3440","#eceff4"),
-  palette("Dracula","#bd93f9","#282a36","#ff79c6","#282a36","#f8f7fc","#282a36","#282a36","#f8f8f2"),
-  palette("Cyberpunk","#db2777","#ffffff","#22d3ee","#083344","#fff7fc","#100b1c","#2a1530","#fce7f3"),
+  {...palette("Neutral","#171717","#ffffff","#fafafa","#262626", "#ffffff","#171717","#171717","#fafafa",
+    art("Quiet editorial","Clarity with a human pulse","A calm canvas where the content is the protagonist.","Considered, tactile, quietly confident.","Precise, warm, and unhurried.",["clarity","craft","editorial"],"topographic","editorial","paper","soft","paper","still","Georgia, 'Times New Roman', serif","tight")),name:"neutral"},
+  palette("Ocean","#0369a1","#ffffff","#38bdf8","#082f49","#f8fcff","#071923","#102a3a","#e6f7ff",
+    art("Blue hour cinema","A horizon after the noise","Deep space, measured light, and a clear focal point.","Atmospheric, expansive, quietly luminous.","Evocative, spacious, and deliberate.",["horizon","depth","light"],"orbit","cinematic","mesh","soft","glass","slow","'Arial', sans-serif","tight")),
+  palette("Emerald","#047857","#ffffff","#34d399","#052e24","#f7fdf9","#071b15","#12372b","#e8fff4",
+    art("Living archive","A system that grows with its ideas","Organic forms bring a sense of life without sacrificing structure.","Botanical, patient, grounded.","Observant, nurturing, and clear.",["growth","nature","continuity"],"botanical","gallery","paper","soft","paper","slow","Georgia, serif","normal")),
+  palette("Rose","#e11d48","#ffffff","#fb7185","#4c0519","#fffafb","#211016","#3b1722","#fff1f4",
+    art("Soft surrealism","Make room for a little wonder","Unexpected shapes soften a rigorous interface.","Dreamlike, intimate, playful.","Poetic, optimistic, and personal.",["wonder","gesture","warmth"],"collage","gallery","grain","pill","glass","slow","'Trebuchet MS', sans-serif","normal")),
+  palette("Violet","#7c3aed","#ffffff","#a78bfa","#2e1065","#fcfaff","#171126","#271b3c","#f4edff",
+    art("Prismatic field","Many perspectives, one coherent story","Layered translucent planes create depth and dimensionality.","Iridescent, layered, contemplative.","Curious, imaginative, and articulate.",["prism","depth","possibility"],"stained-glass","cinematic","mesh","soft","glass","slow","Georgia, serif","tight")),
+  palette("Amber","#b45309","#ffffff","#fbbf24","#451a03","#fffdf7","#21190b","#3d2b13","#fff6df",
+    art("Printed matter","Every detail earns its place","A warm editorial system inspired by ink, paper, and print.","Analog, warm, archival.","Direct, crafted, and timeless.",["paper","ink","archive"],"geometry","editorial","paper","cut","paper","still","Georgia, serif","wide")),
+  palette("Nord","#5e81ac","#ffffff","#88c0d0","#2e3440","#eceff4","#2e3440","#2e3440","#eceff4",
+    art("Quiet instrument","Precision without the noise","A measured grid makes complex information feel navigable.","Cool, technical, balanced.","Exact, composed, and helpful.",["grid","signal","precision"],"geometry","instrument","none","sharp","matte","still","ui-monospace, monospace","normal")),
+  palette("Dracula","#bd93f9","#282a36","#ff79c6","#282a36","#f8f7fc","#282a36","#282a36","#f8f8f2",
+    art("Night theatre","A little drama, perfectly controlled","High contrast and focused highlights turn the interface into a stage.","Nocturnal, theatrical, electric.","Bold, witty, and incisive.",["noir","contrast","stage"],"orbit","cinematic","grain","sharp","glass","kinetic","Georgia, serif","tight")),
+  palette("Cyberpunk","#db2777","#ffffff","#22d3ee","#083344","#fff7fc","#100b1c","#2a1530","#fce7f3",
+    art("Signal / noise","Design for the edge of tomorrow","Hard geometry, vivid accents, and deliberate disruption.","Hyper-modern, raw, high-energy.","Provocative, concise, and fearless.",["signal","future","energy"],"collage","instrument","grain","cut","matte","kinetic","ui-monospace, monospace","wide")),
 ]
 export const DEFAULT_SKIN=SKIN_PRESETS[0]
+export const SKIN_ART_DIRECTIONS=SKIN_PRESETS.map(({artDirection})=>artDirection!).filter(Boolean)
 export const SKIN_TOKEN_LABELS:{key:keyof SkinTokens;label:string}[]=[
   {key:"background",label:"Background"},{key:"foreground",label:"Foreground"},{key:"card",label:"Card"},
   {key:"cardForeground",label:"Card foreground"},{key:"popover",label:"Popover"},{key:"popoverForeground",label:"Popover foreground"},
@@ -65,22 +127,70 @@ const TOKEN_NAMES:Record<keyof SkinTokens,string>={
   border:"border",input:"input",ring:"ring",sidebar:"sidebar",sidebarForeground:"sidebar-foreground",
   chart1:"chart-1",chart2:"chart-2",chart3:"chart-3",
 }
-export function skinTokensToCss(tokens:SkinTokens){return (Object.keys(TOKEN_NAMES) as (keyof SkinTokens)[]).map(key=>`  --${TOKEN_NAMES[key]}: ${tokens[key]};`).join("\n")}
-export function skinToCss(theme:SkinTheme){return `:root {\n  --radius: ${theme.radius/16}rem;\n  --font-sans: ${theme.font};\n${skinTokensToCss(theme.light)}\n}\n\n.dark {\n${skinTokensToCss(theme.dark)}\n}\n`}
-export function skinToRegistryItem(theme:SkinTheme){
-  const map=(tokens:SkinTokens)=>Object.fromEntries((Object.keys(TOKEN_NAMES) as (keyof SkinTokens)[]).map(key=>[TOKEN_NAMES[key],tokens[key]]))
-  return {$schema:"https://ui.shadcn.com/schema/registry-item.json",name:theme.name,type:"registry:theme",title:theme.label,description:theme.description??`Custom ${theme.label} theme`,cssVars:{light:map(theme.light),dark:map(theme.dark),theme:{radius:`${theme.radius/16}rem`,"font-sans":theme.font}}}
+export function normalizeSkin(theme:SkinTheme):SkinTheme {
+  return {...DEFAULT_SKIN,...theme,light:{...DEFAULT_SKIN.light,...theme.light},dark:{...DEFAULT_SKIN.dark,...theme.dark},artDirection:{...DEFAULT_ART_DIRECTION,...theme.artDirection,narrative:{...DEFAULT_ART_DIRECTION.narrative,...theme.artDirection?.narrative}}}
 }
-export function skinToStyle(theme:SkinTheme,mode:SkinMode){
+export function skinTokensToCss(tokens:SkinTokens){return (Object.keys(TOKEN_NAMES) as (keyof SkinTokens)[]).map(key=>`  --${TOKEN_NAMES[key]}: ${tokens[key]};`).join("\n")}
+export function skinToCss(themeInput:SkinTheme){
+  const theme=normalizeSkin(themeInput)
+  const direction=theme.artDirection!
+  const cardRadius=direction.shape==="pill"?Math.max(18,theme.radius*2):direction.shape==="sharp"||direction.shape==="cut"?2:theme.radius
+  const controlRadius=direction.shape==="pill"?"999px":direction.shape==="sharp"||direction.shape==="cut"?"3px":Math.max(4,theme.radius*.7)+"px"
+  const headingTracking=direction.tracking==="tight"?"-0.04em":direction.tracking==="wide"?"0.08em":"0"
+  const artOpacity=direction.artwork==="none"?0:direction.composition==="cinematic"?.68:.42
+  const textureOpacity=direction.texture==="none"?0:direction.texture==="grain"?.13:direction.texture==="mesh"?.1:.22
+  const motionDuration=direction.motion==="kinetic"?"180ms":direction.motion==="slow"?"650ms":"0ms"
+  return `:root {\\n  --radius: ${theme.radius/16}rem;\\n  --font-sans: ${theme.font};\\n  --skin-body-font: ${theme.font};\\n  --skin-heading-font: ${direction.headingFont};\\n${skinTokensToCss(theme.light)}\\n}\\n\\n.dark {\\n${skinTokensToCss(theme.dark)}\\n}\\n\\n[data-skin] {\\n  --skin-card-radius: ${cardRadius}px;\\n  --skin-control-radius: ${controlRadius};\\n  --skin-heading-tracking: ${headingTracking};\\n  --skin-art-opacity: ${artOpacity};\\n  --skin-texture-opacity: ${textureOpacity};\\n  --skin-motion-duration: ${motionDuration};\\n  --skin-composition: ${direction.composition};\\n  --skin-artwork-kind: ${direction.artwork};\\n  --skin-texture-kind: ${direction.texture};\\n}\\n`
+}
+export function skinToRegistryItem(themeInput:SkinTheme){
+  const theme=normalizeSkin(themeInput)
+  const map=(tokens:SkinTokens)=>Object.fromEntries((Object.keys(TOKEN_NAMES) as (keyof SkinTokens)[]).map(key=>[TOKEN_NAMES[key],tokens[key]]))
+  return {
+    $schema:"https://ui.shadcn.com/schema/registry-item.json",
+    name:theme.name,
+    type:"registry:theme",
+    title:theme.label,
+    description:theme.description??theme.artDirection?.narrative.thesis??`Custom ${theme.label} visual system`,
+    meta:{"skin-art-direction":JSON.stringify(theme.artDirection)},
+    cssVars:{
+      light:map(theme.light),
+      dark:map(theme.dark),
+      theme:{
+        radius:`${theme.radius/16}rem`,
+        "font-sans":theme.font,
+        "skin-heading-font":theme.artDirection?.headingFont ?? DEFAULT_ART_DIRECTION.headingFont,
+        "skin-card-radius":`${theme.radius}px`,
+        "skin-artwork-kind":theme.artDirection?.artwork ?? "none",
+        "skin-composition":theme.artDirection?.composition ?? "editorial",
+        "skin-texture-kind":theme.artDirection?.texture ?? "none",
+      },
+    },
+  }
+}
+export function skinToStyle(themeInput:SkinTheme,mode:SkinMode){
+  const theme=normalizeSkin(themeInput)
   const t=theme[mode]
+  const direction=theme.artDirection!
+  const radius=theme.radius
   const css:Record<string,string>={
-    "--radius":`${theme.radius}px`,"--font-sans":theme.font,
-    "--background":t.background,"--foreground":t.foreground,"--card":t.card,"--card-foreground":t.cardForeground,
-    "--popover":t.popover,"--popover-foreground":t.popoverForeground,"--primary":t.primary,"--primary-foreground":t.primaryForeground,
-    "--secondary":t.secondary,"--secondary-foreground":t.secondaryForeground,"--muted":t.muted,"--muted-foreground":t.mutedForeground,
-    "--accent":t.accent,"--accent-foreground":t.accentForeground,"--destructive":t.destructive,"--destructive-foreground":t.destructiveForeground,
-    "--border":t.border,"--input":t.input,"--ring":t.ring,"--sidebar":t.sidebar,"--sidebar-foreground":t.sidebarForeground,
-    "--chart-1":t.chart1,"--chart-2":t.chart2,"--chart-3":t.chart3,
+    "--radius":`${radius}px`,"--font-sans":theme.font,"--skin-body-font":theme.font,
+    "--skin-heading-font":direction.headingFont,
+    "--skin-heading-tracking":direction.tracking==="tight"?"-0.04em":direction.tracking==="wide"?"0.08em":"0",
+    "--skin-card-radius":direction.shape==="pill"?`${Math.max(18,radius*2)}px`:direction.shape==="sharp"?"2px":direction.shape==="cut"?"2px":`${radius}px`,
+    "--skin-control-radius":direction.shape==="pill"?"999px":direction.shape==="sharp"||direction.shape==="cut"?"3px":`${Math.max(4,radius*.7)}px`,
+    "--skin-card-shadow":theme.shadow==="none"?"none":theme.shadow==="sharp"?"0 1px 2px rgb(0 0 0 / .16)":theme.shadow==="medium"?"0 12px 36px rgb(0 0 0 / .14)":"0 5px 24px rgb(0 0 0 / .07)",
+    "--skin-art-opacity":direction.artwork==="none"?"0":direction.composition==="cinematic"?"0.68":"0.42",
+    "--skin-texture-opacity":direction.texture==="none"?"0":direction.texture==="grain"?"0.13":direction.texture==="mesh"?"0.1":"0.22",
+    "--skin-surface-blur":direction.surface==="glass"?"18px":"0px",
+    "--skin-border-style":direction.shape==="cut"?"solid":"solid",
+    "--skin-density-factor":theme.density==="compact"?"0.82":"1",
+    "--skin-motion-duration":direction.motion==="kinetic"?"180ms":direction.motion==="slow"?"650ms":"0ms",
+    "--skin-background":t.background,"--background":t.background,"--foreground":t.foreground,
+    "--card":t.card,"--card-foreground":t.cardForeground,"--popover":t.popover,"--popover-foreground":t.popoverForeground,
+    "--primary":t.primary,"--primary-foreground":t.primaryForeground,"--secondary":t.secondary,"--secondary-foreground":t.secondaryForeground,
+    "--muted":t.muted,"--muted-foreground":t.mutedForeground,"--accent":t.accent,"--accent-foreground":t.accentForeground,
+    "--destructive":t.destructive,"--destructive-foreground":t.destructiveForeground,"--border":t.border,"--input":t.input,"--ring":t.ring,
+    "--sidebar":t.sidebar,"--sidebar-foreground":t.sidebarForeground,"--chart-1":t.chart1,"--chart-2":t.chart2,"--chart-3":t.chart3,
     "--skin-shadow":theme.shadow==="none"?"none":theme.shadow==="sharp"?"0 1px 2px rgb(0 0 0 / .16)":theme.shadow==="medium"?"0 8px 24px rgb(0 0 0 / .12)":"0 4px 16px rgb(0 0 0 / .07)",
   }
   return css as CSSProperties
