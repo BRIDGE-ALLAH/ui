@@ -631,3 +631,42 @@
   color: var(--foreground);
   font-family: var(--skin-body-font, var(--font-sans));
 }
+
+
+/* Surface finishes are applied to the entire SkinProvider subtree. */
+[data-skin-surface="paper"] .skin-surface {
+  background-color: color-mix(in oklab, var(--card) 94%, var(--primary) 6%);
+  box-shadow: var(--skin-card-shadow, none);
+}
+
+[data-skin-surface="glass"] .skin-surface {
+  border-color: color-mix(in oklab, var(--border) 68%, var(--primary));
+  background: color-mix(in oklab, var(--card) 76%, transparent);
+  -webkit-backdrop-filter: blur(var(--skin-surface-blur, 16px));
+  backdrop-filter: blur(var(--skin-surface-blur, 16px));
+}
+
+[data-skin-surface="matte"] .skin-surface {
+  background: var(--card);
+  box-shadow: none;
+}
+
+[data-skin-surface="outline"] .skin-surface {
+  background: transparent;
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+
+[data-skin] .skin-control {
+  transition:
+    background-color var(--skin-motion-duration, 0ms) ease,
+    border-color var(--skin-motion-duration, 0ms) ease,
+    color var(--skin-motion-duration, 0ms) ease,
+    transform var(--skin-motion-duration, 0ms) ease;
+}
+
+[data-skin-shape="cut"] [data-slot="card"] {
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  border-radius: 0;
+}
+

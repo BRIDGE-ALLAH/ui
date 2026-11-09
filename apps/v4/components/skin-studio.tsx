@@ -34,11 +34,11 @@ function downloadFile(filename: string, content: string, type: string) {
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
-    <div className="block space-y-2">
-      <span className="block text-sm font-medium">{label}</span>
+    <fieldset className="block min-w-0 space-y-2">
+      <legend className="block text-sm font-medium">{label}</legend>
       {children}
-      {hint && <span className="block text-xs text-muted-foreground">{hint}</span>}
-    </div>
+      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+    </fieldset>
   )
 }
 
@@ -124,6 +124,8 @@ export function SkinStudio() {
     artwork.setAttribute("xmlns", "http://www.w3.org/2000/svg")
     artwork.setAttribute("width", "1440")
     artwork.setAttribute("height", "840")
+    artwork.removeAttribute("class")
+    artwork.setAttribute("style", "color: " + normalized[mode].primary + ";")
     const markup = new XMLSerializer().serializeToString(artwork)
     downloadFile(`${theme.name}-artwork.svg`, markup, "image/svg+xml;charset=utf-8")
     setNotice("Scalable vector artwork downloaded as SVG.")
