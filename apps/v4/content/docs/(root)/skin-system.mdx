@@ -1,0 +1,48 @@
+---
+title: Skin System
+description: Create, customize, preview, and export reusable design skins.
+---
+
+# Skin System
+
+The Skin System adds a visual design layer on top of shadcn's semantic CSS variables. Start with a preset, edit light and dark tokens independently, tune shape and typography, then export the result as CSS or a registry theme.
+
+Open the [Skin Studio](/skin-studio) to build a theme interactively.
+
+## Features
+
+- Curated presets: Neutral, Ocean, Emerald, Rose, Violet, Amber, Nord, Dracula, and Cyberpunk.
+- Semantic color tokens for surfaces, text, actions, borders, focus rings, sidebars, and charts.
+- Independent light and dark palettes.
+- Global radius, typography, density, and shadow settings.
+- Live preview of common dashboard components.
+- Browser-local save, JSON import, CSS export, and shadcn registry-theme JSON export.
+
+## Apply a saved skin in an app
+
+The reusable provider reads the skin saved by Skin Studio from local storage and applies its semantic CSS variables to its subtree.
+
+```tsx
+import { SkinProvider } from "@/components/skin-provider"
+
+export function AppShell({ children }: { children: React.ReactNode }) {
+  return <SkinProvider>{children}</SkinProvider>
+}
+```
+
+You can also pass a theme object directly:
+
+```tsx
+import { SkinProvider } from "@/components/skin-provider"
+import { SKIN_PRESETS } from "@/lib/skin-system"
+
+export function AppShell({ children }: { children: React.ReactNode }) {
+  return <SkinProvider theme={SKIN_PRESETS[1]}>{children}</SkinProvider>
+}
+```
+
+## Export formats
+
+**CSS** exports `:root` and `.dark` variables that can be merged into your `app/globals.css`. **Registry JSON** exports a `registry:theme` item compatible with shadcn's theme registry format.
+
+The preview is isolated to the studio and does not overwrite the site's global CSS. Review generated tokens before replacing your production theme.
