@@ -107,7 +107,23 @@ export function SkinStudio() {
       return { ...next, artDirection: { ...next.artDirection!, [key]: value } }
     })
   }
-  function updateNarrative(key: keyof SkinArtDirection["narrative"], value: string) {
+  function updateKeywords(value: string) {
+    setTheme((current) => {
+      const next = normalizeSkin(current)
+      return {
+        ...next,
+        artDirection: {
+          ...next.artDirection!,
+          narrative: {
+            ...next.artDirection!.narrative,
+            keywords: value.split(",").map((word) => word.trim()).filter(Boolean),
+          },
+        },
+      }
+    })
+  }
+
+  function updateNarrative(key: Exclude<keyof SkinArtDirection["narrative"], "keywords">, value: string) {
     setTheme((current) => {
       const next = normalizeSkin(current)
       return { ...next, artDirection: { ...next.artDirection!, narrative: { ...next.artDirection!.narrative, [key]: value } } }
@@ -159,14 +175,24 @@ export function SkinStudio() {
       const parsed = JSON.parse(importValue) as Partial<SkinTheme> & {
         title?: string
         cssVars?: { light?: Record<string, string>; dark?: Record<string, string>; theme?: Record<string, string> }
+        meta?: Record<string, string>
       }
       const fromRegistry = (tokens?: Record<string, string>) => Object.fromEntries(
         Object.entries(tokens ?? {}).map(([key, value]) => [key.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase()), value])
       )
+      const importedArt = parsed.meta?.["skin-art-direction"]
+        ? JSON.parse(parsed.meta["skin-art-direction"]) as SkinArtDirection
+        : DEFAULT_SKIN.artDirection
+      const importedCraft = parsed.meta?.["skin-craft"]
+        ? JSON.parse(parsed.meta["skin-craft"]) as Partial<Pick<SkinTheme, "density" | "shadow">>
+        : {}
       const candidate = parsed.cssVars ? {
         ...DEFAULT_SKIN,
+        ...importedCraft,
         name: String(parsed.name ?? "imported-skin"),
         label: String(parsed.title ?? parsed.name ?? "Imported skin"),
+        font: parsed.cssVars.theme?.["font-sans"] ?? DEFAULT_SKIN.font,
+        artDirection: importedArt,
         light: { ...DEFAULT_SKIN.light, ...fromRegistry(parsed.cssVars.light) },
         dark: { ...DEFAULT_SKIN.dark, ...fromRegistry(parsed.cssVars.dark) },
         radius: Number.parseFloat(parsed.cssVars.theme?.radius ?? "0.625rem") * 16,
@@ -261,6 +287,17 @@ export function SkinStudio() {
                   {value:"instrument",label:"Instrument",description:"Dense, precise, information-first."},
                   {value:"gallery",label:"Gallery",description:"Expressive spaces and visual objects."},
                 ]} />
+                <Field label="Vector artwork" hint="Swap the visual motif without changing the rest of the skin.">
+                  <Choice value={direction.artwork} onChange={(value) => updateDirection("artwork", value)} options={[
+                    {value:"botanical",label:"Botanical"},{value:"orbit",label:"Orbit"},
+                    {value:"topographic",label:"Topographic"},{value:"geometry",label:"Geometry"},
+                    {value:"collage",label:"Collage"},{value:"stained-glass",label:"Stained glass"},
+                    {value:"none",label:"No artwork"},
+                  ]} />
+                </Field>
+                <Field label="Narrative keywords" hint="Comma-separated words that define the identity.">
+                  <input value={direction.narrative.keywords.join(", ")} onChange={(event) => updateKeywords(event.target.value)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
+                </Field>
               </section>
             </div>
           )}

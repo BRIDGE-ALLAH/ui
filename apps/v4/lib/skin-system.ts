@@ -151,7 +151,7 @@ export function skinToRegistryItem(themeInput:SkinTheme){
     type:"registry:theme",
     title:theme.label,
     description:theme.description??theme.artDirection?.narrative.thesis??`Custom ${theme.label} visual system`,
-    meta:{"skin-art-direction":JSON.stringify(theme.artDirection)},
+    meta:{"skin-art-direction":JSON.stringify(theme.artDirection),"skin-craft":JSON.stringify({density:theme.density,shadow:theme.shadow})},
     cssVars:{
       light:map(theme.light),
       dark:map(theme.dark),
