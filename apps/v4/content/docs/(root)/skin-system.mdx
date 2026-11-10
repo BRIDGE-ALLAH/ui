@@ -1,0 +1,93 @@
+---
+title: Skin System
+description: Build a complete visual identity with narrative art direction, vector artwork, semantic tokens, and reusable surfaces.
+---
+
+# Skin System
+
+A skin is a **visual language**, not a color preset. The Skin System combines semantic UI tokens with an art direction: narrative, typography, composition, surface treatment, shape grammar, texture, motion, and scalable vector artwork.
+
+Open the [Skin Studio](/skin-studio) to create and preview an identity.
+
+## Think in art direction
+
+Every preset starts with a point of view. For example:
+
+- **Quiet editorial** — paper-like surfaces, measured typography, topographic linework, and generous hierarchy.
+- **Blue hour cinema** — expansive compositions, orbit diagrams, translucent depth, and atmospheric transitions.
+- **Living archive** — botanical linework, grounded colors, and patient organic forms.
+- **Signal / noise** — hard geometry, sharp edges, technical type, and vivid contrast.
+
+These are starting narratives. In the studio, edit the thesis, atmosphere, and voice to give a system its own character.
+
+## What changes when a skin changes?
+
+The system has several layers:
+
+| Layer | What it controls |
+| --- | --- |
+| Narrative | Title, thesis, atmosphere, voice, and keywords |
+| Composition | Editorial, cinematic, instrument, or gallery |
+| Artwork | Botanical, orbit, topographic, geometry, collage, or stained-glass SVG |
+| Color language | Light/dark semantic tokens for all core shadcn surfaces and states |
+| Typography | Body and display font stacks plus heading tracking |
+| Shape | Soft, sharp, pill, or cut geometry |
+| Surface | Paper, glass, matte, or outline treatment |
+| Texture and motion | Paper/grain/mesh texture and still/slow/kinetic transitions |
+
+## Reusable API
+
+Wrap an application region in `SkinProvider` to apply saved tokens and expose a shared `useSkin` hook:
+
+```tsx
+import { SkinProvider } from "@/components/skin-provider"
+
+export function AppShell({ children }: { children: React.ReactNode }) {
+  return <SkinProvider>{children}</SkinProvider>
+}
+```
+
+Select a curated direction programmatically:
+
+```tsx
+import { SkinProvider } from "@/components/skin-provider"
+import { SKIN_PRESETS } from "@/lib/skin-system"
+
+export function BrandExperience({ children }: { children: React.ReactNode }) {
+  return <SkinProvider theme={SKIN_PRESETS[2]}>{children}</SkinProvider>
+}
+```
+
+Use vector artwork and surfaces as composition primitives rather than baking images into a theme:
+
+```tsx
+import { SkinArtwork } from "@/components/skin-artwork"
+import { SkinHero, SkinSurface } from "@/components/skin-components"
+
+export function EditorialPanel() {
+  return (
+    <SkinHero
+      eyebrow="Field notes / 01"
+      title="Make room for better ideas."
+      description="A branded hero whose artwork follows the active art direction."
+      artwork="botanical"
+    />
+  )
+}
+```
+
+`SkinArtwork` renders responsive inline SVG. The artwork remains crisp at every size and can inherit its color from CSS. Available variants are `botanical`, `orbit`, `topographic`, `geometry`, `collage`, `stained-glass`, and `none`.
+
+## Apply, save, and export
+
+The v4 site root is wrapped in `SkinProvider`, so saving a visual identity in Skin Studio updates the whole documentation website—not just the preview. The current theme is stored in browser-local storage. Mounted providers listen for studio changes and update in the same tab, and the provider respects the app's resolved light/dark mode. Use the same provider in another app to carry the identity into that product.
+
+- **CSS variables** export the semantic token contract and art-direction variables.
+- **Registry JSON** exports a shadcn `registry:theme` item.
+- **Import JSON** accepts this system's `SkinTheme` shape and shadcn registry theme token maps.
+
+The Skin Studio preview is isolated so experiments do not silently replace the site's global theme. Applying a skin to a product area is an explicit choice: wrap that area with `SkinProvider`, then use `SkinSurface` and `SkinArtwork` where expressive composition is required.
+
+## Accessibility and production notes
+
+Motion is reduced when the user's operating system requests reduced motion. SVG artwork is decorative by default and can be given an accessible title when it conveys meaning. Validate generated colors for contrast and review the exported CSS before replacing production tokens.

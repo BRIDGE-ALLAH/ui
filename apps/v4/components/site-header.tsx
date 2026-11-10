@@ -41,6 +41,8 @@ export function SiteHeader() {
               className="ml-2 hidden lg:block"
             />
             <GitHubLink />
+            <Link href="/skin-preview" className="hidden rounded-lg px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:inline-flex">Live Preview</Link>
+            <Link href="/skin-studio" className="hidden rounded-lg px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:inline-flex">Skin Studio</Link>
             <Separator orientation="vertical" />
             <ModeSwitcher />
             <DesignerActions />
