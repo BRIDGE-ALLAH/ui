@@ -1,3 +1,4 @@
+import postcss from "postcss"
 import { describe, expect, it } from "vitest"
 
 import {
@@ -85,6 +86,7 @@ describe("Skin System pure utilities", () => {
       expect(css).toContain("\n[data-skin] {\n")
       expect(css).toContain("--skin-heading-font:")
       expect(css).toContain("--skin-motion-duration:")
+      expect(() => postcss.parse(css)).not.toThrow()
     }
   })
 
