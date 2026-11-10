@@ -24,7 +24,8 @@
     "registry:health:publish": "tsx --tsconfig ./tsconfig.scripts.json ./scripts/monitor-registries.mts --phase publish",
     "validate:registries": "tsx --tsconfig ./tsconfig.scripts.json ./scripts/validate-registries.mts",
     "test:apps": "bun run ./scripts/build-test-app.mts",
-    "postinstall": "fumadocs-mdx"
+    "postinstall": "fumadocs-mdx",
+    "test": "vitest run --config ../../vitest.config.ts lib/skin-system.test.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "4.0.0-canary.66",
