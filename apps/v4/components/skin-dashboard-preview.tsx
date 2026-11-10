@@ -139,7 +139,7 @@ export function SkinDashboardPreview() {
         <div className="skin-dashboard__content">
           <section className="skin-dashboard__intro">
             <div>
-              <p className="skin-dashboard__eyebrow">MONDAY, NOVEMBER 10, 2026 <span>•</span> YOUR STUDIO AT A GLANCE</p>
+              <p className="skin-dashboard__eyebrow">TUESDAY, NOVEMBER 10, 2026 <span>•</span> YOUR STUDIO AT A GLANCE</p>
               <h1>{activeTitle}</h1>
               <p className="skin-dashboard__intro-copy">A clear view of the work, people, and ideas moving your studio forward.</p>
             </div>
