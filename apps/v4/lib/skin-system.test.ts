@@ -110,6 +110,7 @@ describe("Skin System pure utilities", () => {
     expect(validateSkinTheme({ ...DEFAULT_SKIN, radius: 100 }).success).toBe(false)
     expect(validateSkinTheme({ ...DEFAULT_SKIN, name: "../unsafe" }).success).toBe(false)
     expect(validateSkinTheme({ ...DEFAULT_SKIN, light: { ...DEFAULT_SKIN.light, background: "red; color: black" } }).success).toBe(false)
+    expect(validateSkinTheme({ ...DEFAULT_SKIN, font: "url(https://example.invalid/font)" }).success).toBe(false)
   })
 
   it("imports SkinTheme JSON and registry JSON through one validated path", () => {
@@ -122,6 +123,7 @@ describe("Skin System pure utilities", () => {
     if (registry.success) {
       expect(registry.data.name).toBe(DEFAULT_SKIN.name)
       expect(registry.data.light.background).toBe(DEFAULT_SKIN.light.background)
+      expect(registry.data.light.chart3).toBe(DEFAULT_SKIN.light.chart3)
       expect(registry.data.artDirection?.narrative.title).toBe(DEFAULT_SKIN.artDirection?.narrative.title)
     }
   })
