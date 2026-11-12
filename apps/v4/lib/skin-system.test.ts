@@ -5,6 +5,7 @@ import {
   DEFAULT_ART_DIRECTION,
   DEFAULT_SKIN,
   SKIN_PRESETS,
+  SKIN_TOKEN_LABELS,
   normalizeSkin,
   parseSkinImport,
   validateSkinTheme,
@@ -75,6 +76,10 @@ describe("Skin System pure utilities", () => {
     expect(style["--skin-density-factor"]).toBe("0.82")
     expect(style["--skin-card-shadow"]).toBe("none")
     expect(style["--radius"]).toBe("12px")
+    const darkStyle = skinToStyle(theme, "dark")
+    expect(darkStyle["--background"]).toBe(theme.dark.background)
+    expect(darkStyle["--sidebar-primary"]).toBe(theme.dark.sidebarPrimary)
+    expect(darkStyle["--chart-5"]).toBe(theme.dark.chart5)
   })
 
   it("emits parseable CSS text with real line breaks for every preset", () => {
@@ -136,6 +141,23 @@ describe("Skin System pure utilities", () => {
       ...item,
       meta: { ...item.meta, "skin-schema-version": "99" },
     })).success).toBe(false)
+  })
+
+  it("covers every application semantic token in presets, styles, and registry exports", () => {
+    expect(SKIN_TOKEN_LABELS).toHaveLength(40)
+    for (const preset of SKIN_PRESETS) {
+      for (const { key } of SKIN_TOKEN_LABELS) {
+        expect(preset.light[key]).toBeTruthy()
+        expect(preset.dark[key]).toBeTruthy()
+      }
+      const style = skinToStyle(preset, "light") as Record<string, string>
+      const registry = skinToRegistryItem(preset)
+      for (const { key } of SKIN_TOKEN_LABELS) {
+        const cssName = key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`).replace(/chart([1-5])$/, "chart-$1")
+        expect(style[`--${cssName}`]).toBe(preset.light[key])
+        expect(registry.cssVars.light[cssName]).toBe(preset.light[key])
+      }
+    }
   })
 
 })
