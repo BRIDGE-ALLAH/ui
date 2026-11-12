@@ -4,11 +4,16 @@ import * as React from "react"
 import { IconCheck, IconCopy, IconDownload, IconMoon, IconSun, IconUpload } from "@tabler/icons-react"
 
 import { SkinArtwork } from "@/components/skin-artwork"
+import { useSkin } from "@/components/skin-provider"
 import {
   DEFAULT_SKIN,
   SKIN_PRESETS,
   SKIN_TOKEN_LABELS,
   SKIN_STORAGE_KEY,
+  SKIN_CUSTOM_STORAGE_KEY,
+  buildCustomSkin,
+  parseCustomSkinLibrary,
+  serializeCustomSkinLibrary,
   normalizeSkin,
   parseSkinImport,
   validateSkinTheme,
@@ -70,7 +75,10 @@ function Choice<T extends string>({
 }
 
 export function SkinStudio() {
+  const { skin: appliedSkin, setSkin: applySkin } = useSkin()
   const [theme, setTheme] = React.useState<SkinTheme>(DEFAULT_SKIN)
+  const [savedTheme, setSavedTheme] = React.useState<SkinTheme>(DEFAULT_SKIN)
+  const [customSkins, setCustomSkins] = React.useState<SkinTheme[]>([])
   const [mode, setMode] = React.useState<SkinMode>("light")
   const [tab, setTab] = React.useState<StudioTab>("identity")
   const [format, setFormat] = React.useState<ExportFormat>("css")
@@ -83,7 +91,15 @@ export function SkinStudio() {
       const saved = localStorage.getItem(SKIN_STORAGE_KEY)
       if (saved) {
         const result = validateSkinTheme(JSON.parse(saved) as unknown)
-        setTheme(result.success ? result.data : DEFAULT_SKIN)
+        const initial = result.success ? result.data : DEFAULT_SKIN
+        setTheme(initial)
+        setSavedTheme(initial)
+      }
+      const savedCustom = localStorage.getItem(SKIN_CUSTOM_STORAGE_KEY)
+      if (savedCustom) {
+        const result = parseCustomSkinLibrary(savedCustom)
+        if (result.success) setCustomSkins(result.data)
+        else setNotice(result.error)
       }
     } catch {
       setTheme(DEFAULT_SKIN)
@@ -91,7 +107,28 @@ export function SkinStudio() {
   }, [])
 
   const normalized = React.useMemo(() => normalizeSkin(theme), [theme])
+  const isDirty = React.useMemo(
+    () => JSON.stringify(normalizeSkin(theme)) !== JSON.stringify(normalizeSkin(savedTheme)),
+    [theme, savedTheme]
+  )
+  const isApplied = React.useMemo(
+    () => JSON.stringify(normalizeSkin(theme)) === JSON.stringify(normalizeSkin(appliedSkin)),
+    [theme, appliedSkin]
+  )
+  const isCustomSaved = customSkins.some(
+    (skin) => skin.name === theme.name && JSON.stringify(normalizeSkin(skin)) === JSON.stringify(normalized)
+  )
   const direction = normalized.artDirection!
+  React.useEffect(() => {
+    if (!isDirty) return
+    const warnBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault()
+      event.returnValue = ""
+    }
+    window.addEventListener("beforeunload", warnBeforeUnload)
+    return () => window.removeEventListener("beforeunload", warnBeforeUnload)
+  }, [isDirty])
+
   const output = React.useMemo(
     () => format === "css" ? skinToCss(normalized) : JSON.stringify(skinToRegistryItem(normalized), null, 2),
     [format, normalized]
@@ -157,10 +194,104 @@ export function SkinStudio() {
       await navigator.clipboard.writeText(output)
       setCopied(true)
       window.setTimeout(() => setCopied(false), 1800)
-      setNotice("Export copied to clipboard.")
+      setNotice(`Copied the ${isDirty ? "unsaved draft" : isApplied ? "applied visual identity" : "saved visual identity"} export to the clipboard.`)
     } catch {
       setNotice("Clipboard access is unavailable. Select and copy the export below.")
     }
+  }
+
+  function persistCustomSkins(next: SkinTheme[]) {
+    if (next.length > 100) {
+      setNotice("The custom skin library is limited to 100 skins. Delete one before adding another.")
+      return false
+    }
+
+    const serialized = serializeCustomSkinLibrary(next)
+    if (new Blob([serialized]).size > 512_000) {
+      setNotice("The custom skin library exceeds the 512 KB storage limit. Remove or simplify a skin.")
+      return false
+    }
+
+    try {
+      localStorage.setItem(SKIN_CUSTOM_STORAGE_KEY, serialized)
+      setCustomSkins(next)
+      return true
+    } catch {
+      setNotice("Browser storage is unavailable. Custom skin library changes were not saved.")
+      return false
+    }
+  }
+
+  function uniqueSkinName(base: string) {
+    const slug = base.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48) || "custom-skin"
+    const existing = new Set([...SKIN_PRESETS, ...customSkins].map((skin) => skin.name))
+    let candidate = slug
+    let suffix = 2
+    while (existing.has(candidate)) {
+      candidate = `${slug}-${suffix}`
+      suffix += 1
+    }
+    return candidate
+  }
+
+  function replaceDraft(next: SkinTheme, action: string) {
+    if (isDirty && !window.confirm("Discard your unsaved Skin Studio changes and " + action + "?")) return false
+    setTheme(normalizeSkin(next))
+    return true
+  }
+
+  function createCustomFrom(source: SkinTheme, kind: "custom" | "copy") {
+    const name = uniqueSkinName(`${source.name}-${kind}`)
+    const label = (kind === "copy" ? `${source.label} Copy` : `${source.label} Custom`).slice(0, 80)
+    const result = buildCustomSkin(source, name, label)
+    if (!result.success) {
+      setNotice(result.error)
+      return
+    }
+    const next = [...customSkins, result.data]
+    if (!persistCustomSkins(next)) return
+    setTheme(result.data)
+    setNotice(`${label} created and saved to your browser library. Save it to apply it to the app.`)
+  }
+
+  function renameCustom(source: SkinTheme) {
+    const label = window.prompt("Rename custom visual identity", source.label)
+    if (label === null) return
+    const nextLabel = label.trim()
+    const name = nextLabel.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 64)
+    if (!nextLabel || !name) {
+      setNotice("A custom skin name must contain letters or numbers.")
+      return
+    }
+    const collision = [...SKIN_PRESETS, ...customSkins].some(
+      (skin) => skin.name === name && skin.name !== source.name
+    )
+    if (collision) {
+      setNotice("That custom skin name is already in use. Choose a different name.")
+      return
+    }
+    const result = buildCustomSkin(source, name, nextLabel)
+    if (!result.success) {
+      setNotice(result.error)
+      return
+    }
+    if (theme.name === source.name && isDirty && !window.confirm("Replace the unsaved draft with the renamed custom skin?")) return
+    const next = customSkins.map((skin) => skin.name === source.name ? result.data : skin)
+    if (!persistCustomSkins(next)) return
+    if (theme.name === source.name) setTheme(result.data)
+    if (savedTheme.name === source.name) setSavedTheme(result.data)
+    if (savedTheme.name === source.name || appliedSkin.name === source.name) applySkin(result.data)
+    setNotice("Custom skin renamed.")
+  }
+
+  function deleteCustom(source: SkinTheme) {
+    if (!window.confirm(`Delete "${source.label}" from your custom skin library?${theme.name === source.name && isDirty ? " Unsaved changes to this skin will also be discarded." : ""}`)) return
+    const next = customSkins.filter((skin) => skin.name !== source.name)
+    if (!persistCustomSkins(next)) return
+    if (theme.name === source.name) setTheme(DEFAULT_SKIN)
+    if (savedTheme.name === source.name) setSavedTheme(DEFAULT_SKIN)
+    if (appliedSkin.name === source.name || savedTheme.name === source.name) applySkin(DEFAULT_SKIN)
+    setNotice("Custom skin deleted from this browser.")
   }
 
   function saveTheme() {
@@ -170,14 +301,24 @@ export function SkinStudio() {
       return
     }
     const next = result.data
-    setTheme(next)
-    try {
-      localStorage.setItem(SKIN_STORAGE_KEY, JSON.stringify(next))
-      window.dispatchEvent(new CustomEvent("shadcn-skin-change", { detail: next }))
-      setNotice("Visual identity saved in this browser. SkinProvider consumers update immediately.")
-    } catch {
-      setNotice("Browser storage is unavailable. Your current studio preview is still active.")
+    const isBuiltIn = SKIN_PRESETS.some((preset) => preset.name === next.name)
+    let nextCustom = customSkins
+    if (!isBuiltIn) {
+      nextCustom = customSkins.some((skin) => skin.name === next.name)
+        ? customSkins.map((skin) => skin.name === next.name ? next : skin)
+        : [...customSkins, next]
+      if (!persistCustomSkins(nextCustom)) return
     }
+    applySkin(next)
+    setTheme(next)
+    setSavedTheme(next)
+    setNotice("Visual identity applied. Browser persistence is available when local storage is permitted.")
+  }
+
+  function resetTheme() {
+    if (!window.confirm("Reset the current draft to the canonical default skin?")) return
+    setTheme(DEFAULT_SKIN)
+    setNotice("Draft reset to the canonical default. Save to apply it.")
   }
 
   function importTheme() {
@@ -186,8 +327,8 @@ export function SkinStudio() {
       setNotice(`Import rejected: ${result.error}`)
       return
     }
-    setTheme(result.data)
-    setNotice("Theme imported and validated. Review the art direction, then save it.")
+    if (!replaceDraft(result.data, "import this theme")) return
+    setNotice("Theme imported and validated. Review the draft, then save it to apply.")
   }
 
   const spacing = normalized.density === "compact" ? "p-3" : "p-5"
@@ -214,6 +355,9 @@ export function SkinStudio() {
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <button type="button" onClick={saveTheme} className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground">Save visual identity</button>
             <span className="text-xs text-muted-foreground">{normalized.label} · {direction.name}</span>
+            <span role="status" aria-live="polite" className="rounded-full border px-3 py-1 text-xs text-muted-foreground">
+              {isDirty ? (isCustomSaved ? "Saved in library · not applied" : "Unsaved draft") : isApplied ? "Saved and applied" : "Saved · not applied"}
+            </span>
           </div>
         </div>
       </header>
@@ -240,11 +384,15 @@ export function SkinStudio() {
             <div className="space-y-6">
               <section className="space-y-3">
                 <div><h2 className="text-lg font-semibold">Choose an art direction</h2><p className="text-sm text-muted-foreground">Each preset is a visual thesis: it changes the language, not just the palette.</p></div>
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" onClick={() => createCustomFrom(DEFAULT_SKIN, "custom")} className="rounded-lg border px-3 py-2 text-sm">Create from default</button>
+                  <button type="button" onClick={() => createCustomFrom(theme, "copy")} className="rounded-lg border px-3 py-2 text-sm">Duplicate current draft</button>
+                </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {SKIN_PRESETS.map((preset) => {
                     const presetArt = normalizeSkin(preset).artDirection!
                     return (
-                      <button type="button" key={preset.name} aria-pressed={theme.name === preset.name} onClick={() => setTheme(preset)} className={`group relative overflow-hidden rounded-2xl border p-4 text-left transition hover:-translate-y-0.5 hover:border-primary ${theme.name === preset.name ? "border-primary ring-2 ring-primary/20" : "border-border"}`}>
+                      <button type="button" key={preset.name} aria-pressed={theme.name === preset.name} onClick={() => replaceDraft(preset, "switch to this preset")} className={`group relative overflow-hidden rounded-2xl border p-4 text-left transition hover:-translate-y-0.5 hover:border-primary ${theme.name === preset.name ? "border-primary ring-2 ring-primary/20" : "border-border"}`}>
                         <div className="absolute -right-6 -top-7 size-32 text-primary opacity-20 transition group-hover:scale-110">
                           <SkinArtwork variant={presetArt.artwork} className="h-full w-full" />
                         </div>
@@ -255,6 +403,31 @@ export function SkinStudio() {
                     )
                   })}
                 </div>
+              </section>
+
+              <section className="space-y-3 rounded-2xl border p-4 md:p-5">
+                <div>
+                  <h2 className="font-semibold">Custom skin library</h2>
+                  <p className="text-sm text-muted-foreground">Custom skins are stored locally in this browser. Built-in presets remain unchanged.</p>
+                </div>
+                {customSkins.length === 0 ? (
+                  <p className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground">No custom skins yet. Create one from the default or duplicate the current draft.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {customSkins.map((custom) => (
+                      <div key={custom.name} className="flex flex-wrap items-center gap-2 rounded-xl border p-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium">{custom.label}</p>
+                          <p className="text-xs text-muted-foreground">{custom.name}</p>
+                        </div>
+                        <button type="button" onClick={() => replaceDraft(custom, "open this custom skin")} className="rounded-md border px-2.5 py-1.5 text-xs">Open</button>
+                        <button type="button" onClick={() => createCustomFrom(custom, "copy")} className="rounded-md border px-2.5 py-1.5 text-xs">Duplicate</button>
+                        <button type="button" onClick={() => renameCustom(custom)} className="rounded-md border px-2.5 py-1.5 text-xs">Rename</button>
+                        <button type="button" onClick={() => deleteCustom(custom)} className="rounded-md border px-2.5 py-1.5 text-xs text-destructive">Delete</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </section>
               <section className="space-y-4 rounded-2xl border p-4 md:p-5">
                 <div><h2 className="font-semibold">Write the visual narrative</h2><p className="text-sm text-muted-foreground">Give the system its own premise, mood, and voice. These become reusable design metadata.</p></div>
@@ -381,7 +554,7 @@ export function SkinStudio() {
 
           {tab === "export" && (
             <div className="space-y-4">
-              <div><h2 className="text-lg font-semibold">Package the visual identity</h2><p className="text-sm text-muted-foreground">Export design tokens, narrative metadata, and shadcn-compatible theme variables.</p></div>
+              <div><h2 className="text-lg font-semibold">Package the visual identity</h2><p className="text-sm text-muted-foreground">Export design tokens, narrative metadata, and shadcn-compatible theme variables. This export reflects the current {isDirty ? "unsaved draft" : isApplied ? "applied skin" : "saved skin"}.</p></div>
               <div className="flex gap-2 rounded-xl bg-muted p-1">
                 <button type="button" aria-pressed={format === "css"} onClick={() => setFormat("css")} className={`flex-1 rounded-lg px-3 py-2 text-sm ${format === "css" ? "bg-background shadow-sm" : "text-muted-foreground"}`}>CSS variables</button>
                 <button type="button" aria-pressed={format === "json"} onClick={() => setFormat("json")} className={`flex-1 rounded-lg px-3 py-2 text-sm ${format === "json" ? "bg-background shadow-sm" : "text-muted-foreground"}`}>Registry JSON</button>
@@ -391,7 +564,7 @@ export function SkinStudio() {
                 <button type="button" onClick={copyOutput} className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground">{copied ? <IconCheck size={16} /> : <IconCopy size={16} />} Copy</button>
                 <button type="button" onClick={() => downloadFile(`${theme.name}.${format === "css" ? "css" : "json"}`, output, format === "css" ? "text/css" : "application/json")} className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"><IconDownload size={16} /> Download</button>
                 <button type="button" onClick={downloadArtwork} className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"><IconDownload size={16} /> Vector SVG</button>
-                <button type="button" onClick={() => setTheme(DEFAULT_SKIN)} className="rounded-lg border px-3 py-2 text-sm">Reset</button>
+                <button type="button" onClick={resetTheme} className="rounded-lg border px-3 py-2 text-sm">Reset</button>
               </div>
               <Field label="Import an existing SkinTheme or shadcn registry theme">
                 <textarea aria-label="Import SkinTheme JSON" value={importValue} onChange={(event) => setImportValue(event.target.value)} rows={6} placeholder="Paste JSON here…" className="w-full rounded-lg border bg-background px-3 py-2 font-mono text-xs" />

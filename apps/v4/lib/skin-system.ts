@@ -39,6 +39,7 @@ export type SkinTheme = {
   light: SkinTokens; dark: SkinTokens; artDirection?: SkinArtDirection
 }
 export const SKIN_STORAGE_KEY = "shadcn-skin"
+export const SKIN_CUSTOM_STORAGE_KEY = "shadcn-custom-skins"
 
 const neutralLight: SkinTokens = {
   background:"#ffffff",foreground:"#171717",card:"#ffffff",cardForeground:"#171717",
@@ -299,6 +300,71 @@ export function parseSkinImport(json: string): SkinValidationResult {
     }
   }
   return validateSkinTheme(parsed)
+}
+
+
+export type SkinLibraryValidationResult =
+  | { success: true; data: SkinTheme[] }
+  | { success: false; error: string }
+
+export function buildCustomSkin(
+  source: SkinTheme,
+  name: string,
+  label: string
+): SkinValidationResult {
+  const sourceResult = validateSkinTheme(source)
+  if (!sourceResult.success) return sourceResult
+  if (SKIN_PRESETS.some((preset) => preset.name === name)) {
+    return { success: false, error: "Custom skin names cannot reuse built-in preset names." }
+  }
+  return validateSkinTheme({
+    ...normalizeSkin(sourceResult.data),
+    name,
+    label,
+    description: sourceResult.data.description ?? `Custom visual identity: ${label}`,
+  })
+}
+
+export function parseCustomSkinLibrary(json: string): SkinLibraryValidationResult {
+  if (json.length > 512_000) {
+    return { success: false, error: "Custom skin library exceeds the 512 KB limit." }
+  }
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(json)
+  } catch {
+    return { success: false, error: "Custom skin library contains invalid JSON." }
+  }
+  if (!isRecord(parsed) || parsed.schemaVersion !== 1 || !Array.isArray(parsed.skins)) {
+    return { success: false, error: "Custom skin library must use schema version 1 and contain a skins array." }
+  }
+  if (parsed.skins.length > 100) {
+    return { success: false, error: "Custom skin library cannot contain more than 100 skins." }
+  }
+  const names = new Set<string>()
+  const builtInNames = new Set(SKIN_PRESETS.map((preset) => preset.name))
+  const skins: SkinTheme[] = []
+  for (const entry of parsed.skins) {
+    const result = validateSkinTheme(entry)
+    if (!result.success) return { success: false, error: result.error }
+    if (builtInNames.has(result.data.name)) {
+      return { success: false, error: `Built-in skin "${result.data.name}" cannot be stored as a custom skin.` }
+    }
+    if (names.has(result.data.name)) {
+      return { success: false, error: `Duplicate custom skin name: ${result.data.name}.` }
+    }
+    names.add(result.data.name)
+    skins.push(result.data)
+  }
+  return { success: true, data: skins }
+}
+
+export function serializeCustomSkinLibrary(skins: SkinTheme[]) {
+  return JSON.stringify(
+    { schemaVersion: 1, skins: skins.map((skin) => normalizeSkin(skin)) },
+    null,
+    2
+  )
 }
 
 export function normalizeSkin(theme:SkinTheme):SkinTheme {

@@ -24,6 +24,29 @@ This matrix is the repeatable manual verification contract for `/skin-studio`. I
 - [ ] Decorative artwork and non-interactive preview samples do not enter the tab order or accessibility tree.
 - [ ] Focus remains visible and follows a logical order.
 
+## Custom-library storage contract
+
+- Storage key: `shadcn-custom-skins`.
+- Payload: `{ "schemaVersion": 1, "skins": SkinTheme[] }`.
+- Maximum payload size: 512 KB; maximum library size: 100 skins.
+- Each skin must pass the shared SkinTheme validator, use a lowercase slug name, and have a unique name.
+- Built-in preset names are rejected from the custom library; custom records are independent normalized copies.
+- Storage is browser-local only; there is no cloud synchronization or server persistence.
+
+## Draft and custom-library checks
+
+- [ ] Editing any field changes the Studio status to an unsaved draft.
+- [ ] Switching Studio sections preserves the current draft.
+- [ ] Save normalizes the theme, persists it as the active skin, and updates mounted SkinProvider consumers.
+- [ ] Reset requires confirmation and restores the canonical default draft.
+- [ ] Replacing an unsaved draft with a preset or import requires confirmation.
+- [ ] Leaving the page with an unsaved draft triggers the browser's before-unload warning where supported.
+- [ ] Create from default and duplicate current create uniquely named custom skins.
+- [ ] Editing or renaming a custom skin does not mutate any built-in preset.
+- [ ] Custom skins survive reload, can be selected, duplicated, renamed, and deleted.
+- [ ] Deleting the currently applied custom skin returns the active skin to the default.
+- [ ] Export copy status distinguishes unsaved draft, saved library item, and applied skin.
+
 ## Manual run instructions
 
 1. Open `/skin-studio` at each viewport width above.
@@ -35,4 +58,4 @@ This matrix is the repeatable manual verification contract for `/skin-studio`. I
 
 ## Current status
 
-The implementation adds semantic tab relationships, accessible names, selected states, polite status announcements, and removes inert preview buttons from the tab order. The manual viewport, keyboard, and screen-reader checks remain pending until a browser run is performed.
+The implementation adds accessible names, selected states, polite status announcements, removes inert preview buttons from the tab order, and includes saved/draft/applied state plus a versioned local custom-skin library. The manual viewport, keyboard, and screen-reader checks remain pending until a browser run is performed.
