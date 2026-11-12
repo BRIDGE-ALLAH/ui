@@ -6,12 +6,17 @@ export function SkinArtwork({
   variant = "topographic",
   className,
   title,
+  description,
 }: {
   variant?: SkinArtworkKind
   className?: string
   title?: string
+  description?: string
 }) {
+  const id = React.useId()
   if (variant === "none") return null
+  const titleId = `skin-artwork-title-${id}`
+  const descriptionId = `skin-artwork-description-${id}`
   const common = {
     fill: "none",
     stroke: "currentColor",
@@ -22,13 +27,16 @@ export function SkinArtwork({
   return (
     <svg
       aria-hidden={title ? undefined : true}
-      aria-label={title}
+      aria-labelledby={title ? titleId : undefined}
+      aria-describedby={title && description ? descriptionId : undefined}
       role={title ? "img" : undefined}
       viewBox="0 0 720 420"
       preserveAspectRatio="xMidYMid slice"
       className={className}
       xmlns="http://www.w3.org/2000/svg"
     >
+      {title && <title id={titleId}>{title}</title>}
+      {title && description && <desc id={descriptionId}>{description}</desc>}
       {variant === "botanical" && (
         <g {...common}>
           <path d="M92 414C144 322 176 232 191 42M191 42C112 68 83 126 102 185C157 179 190 127 191 42ZM193 152C271 105 326 115 342 175C290 218 235 207 193 152ZM164 257C87 219 38 237 28 296C82 340 132 320 164 257ZM193 316C264 266 318 280 330 339C279 378 231 368 193 316Z" />
