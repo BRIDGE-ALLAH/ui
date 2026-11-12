@@ -139,7 +139,7 @@ const isSafeCssValue = (value: unknown): value is string =>
   value.length > 0 &&
   value.length <= 256 &&
   !/[;{}<>\\\u0000-\u001f]/.test(value) &&
-  !/(?:url|expression|var)\\s*\\(/i.test(value)
+  !/(?:url|expression|var)\s*\(/i.test(value)
 
 const isOneOf = <T extends string>(value: unknown, values: readonly T[]): value is T =>
   typeof value === "string" && values.includes(value as T)
