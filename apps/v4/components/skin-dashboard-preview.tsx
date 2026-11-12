@@ -52,7 +52,7 @@ function TrendChart({ period }: { period: string }) {
       ? "0,132 42,114 84,120 126,83 168,96 210,54 252,65 294,22"
       : "0,140 42,121 84,98 126,111 168,74 210,61 252,40 294,18"
   return (
-    <svg viewBox="0 0 294 156" preserveAspectRatio="none" className="skin-dashboard__chart" role="img" aria-label={"Engagement trend for the last " + period}>
+    <svg viewBox="0 0 294 156" preserveAspectRatio="none" className="skin-dashboard__chart" role="img" aria-describedby="skin-dashboard-chart-summary" aria-label={"Engagement trend for the last " + period}>
       <defs><linearGradient id="skin-chart-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="var(--chart-1)" stopOpacity=".25" /><stop offset="100%" stopColor="var(--chart-1)" stopOpacity="0" /></linearGradient></defs>
       {[24, 64, 104, 144].map((y) => <line key={y} x1="0" x2="294" y1={y} y2={y} stroke="var(--border)" strokeDasharray="3 5" />)}
       <polygon points={"0,156 " + points + " 294,156"} fill="url(#skin-chart-fill)" />
@@ -77,6 +77,7 @@ export function SkinDashboardPreview() {
   const [query, setQuery] = React.useState("")
   const [activeNav, setActiveNav] = React.useState("Overview")
   const [projects, setProjects] = React.useState(initialProjects)
+  const [announcement, setAnnouncement] = React.useState("")
   const direction = skin.artDirection
   const activeTitle = activeNav === "Overview" ? "Good morning, Alex." : activeNav
   const filteredProjects = projects.filter((project) =>
@@ -89,6 +90,7 @@ export function SkinDashboardPreview() {
       ...current,
     ])
     setActiveNav("Projects")
+    setAnnouncement("Demo project added to this preview. It is not saved and will reset when the page reloads.")
   }
 
   return (
@@ -106,7 +108,7 @@ export function SkinDashboardPreview() {
         <p className="skin-dashboard__nav-label">WORKSPACE</p>
         <nav aria-label="Dashboard navigation" className="skin-dashboard__nav">
           {navItems.map((item) => (
-            <button type="button" key={item.label} onClick={() => setActiveNav(item.label)} className={activeNav === item.label ? "is-active" : ""}>
+            <button type="button" key={item.label} aria-current={activeNav === item.label ? "page" : undefined} onClick={() => setActiveNav(item.label)} className={activeNav === item.label ? "is-active" : ""}>
               <span aria-hidden="true">{item.symbol}</span>{item.label}
               {item.label === "Projects" && <small>{projects.length}</small>}
             </button>
@@ -118,11 +120,11 @@ export function SkinDashboardPreview() {
             <strong>Make space for good work.</strong>
             <p>Your next idea deserves a thoughtful place to grow.</p>
           </div>
-          <button type="button" className="skin-dashboard__profile">
+          <div className="skin-dashboard__profile">
             <span className="skin-dashboard__avatar">AM</span>
             <span><strong>Alex Morgan</strong><small>Studio admin</small></span>
             <MoreIcon />
-          </button>
+          </div>
         </div>
       </aside>
 
@@ -131,8 +133,8 @@ export function SkinDashboardPreview() {
           <div className="skin-dashboard__breadcrumbs"><span>Workspace</span><b>/</b><strong>{activeNav}</strong></div>
           <div className="skin-dashboard__top-actions">
             <label className="skin-dashboard__search"><SearchIcon /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search projects..." aria-label="Search projects" /><kbd>⌘ K</kbd></label>
-            <button type="button" className="skin-dashboard__icon-button" aria-label="Notifications">♧<i /></button>
-            <button type="button" className="skin-dashboard__avatar skin-dashboard__avatar--top" aria-label="Account">AM</button>
+            <span aria-hidden="true" className="skin-dashboard__icon-button">♧<i /></span>
+            <span aria-hidden="true" className="skin-dashboard__avatar skin-dashboard__avatar--top">AM</span>
           </div>
         </header>
 
@@ -143,7 +145,8 @@ export function SkinDashboardPreview() {
               <h1>{activeTitle}</h1>
               <p className="skin-dashboard__intro-copy">A clear view of the work, people, and ideas moving your studio forward.</p>
             </div>
-            <button type="button" className="skin-dashboard__primary-button" onClick={addProject}><span>＋</span> New project</button>
+            <button type="button" className="skin-dashboard__primary-button" onClick={addProject} aria-describedby="skin-dashboard-demo-note"><span aria-hidden="true">＋</span> Add demo project</button>
+            <p id="skin-dashboard-demo-note" className="sr-only">Demo-only action. New projects are not saved and reset when the page reloads.</p>
           </section>
 
           <section className="skin-dashboard__skin-panel" aria-label="Choose a visual skin">
@@ -180,15 +183,15 @@ export function SkinDashboardPreview() {
             <article className="skin-dashboard__panel skin-dashboard__trend-panel" data-skin-surface="card">
               <div className="skin-dashboard__panel-heading">
                 <div><span className="skin-dashboard__eyebrow">PERFORMANCE</span><h3>Engagement overview</h3><p>How your work is resonating over time.</p></div>
-                <div className="skin-dashboard__periods">{["7D", "30D", "90D"].map((item) => <button key={item} type="button" onClick={() => setPeriod(item)} className={period === item ? "is-active" : ""}>{item}</button>)}</div>
+                <div className="skin-dashboard__periods" role="group" aria-label="Engagement chart period">{["7D", "30D", "90D"].map((item) => <button key={item} type="button" aria-pressed={period === item} onClick={() => setPeriod(item)} className={period === item ? "is-active" : ""}>{item}</button>)}</div>
               </div>
-              <div className="skin-dashboard__chart-summary"><strong>{period === "7D" ? "8,240" : period === "30D" ? "27,420" : "84,610"}</strong><span>↑ 12.8% <small>vs previous period</small></span></div>
+              <div id="skin-dashboard-chart-summary" className="skin-dashboard__chart-summary"><strong>{period === "7D" ? "8,240" : period === "30D" ? "27,420" : "84,610"}</strong><span>↑ 12.8% <small>vs previous period</small></span></div>
               <TrendChart period={period} />
               <div className="skin-dashboard__chart-labels"><span>01 NOV</span><span>05 NOV</span><span>10 NOV</span><span>15 NOV</span><span>20 NOV</span><span>30 NOV</span></div>
             </article>
 
             <article className="skin-dashboard__panel skin-dashboard__activity-panel" data-skin-surface="card">
-              <div className="skin-dashboard__panel-heading"><div><span className="skin-dashboard__eyebrow">THE STUDIO PULSE</span><h3>Recent activity</h3><p>Small steps, shared momentum.</p></div><button type="button" className="skin-dashboard__more" aria-label="More activity options"><MoreIcon /></button></div>
+              <div className="skin-dashboard__panel-heading"><div><span className="skin-dashboard__eyebrow">THE STUDIO PULSE</span><h3>Recent activity</h3><p>Small steps, shared momentum.</p></div><span aria-hidden="true" className="skin-dashboard__more"><MoreIcon /></span></div>
               <div className="skin-dashboard__activity-list">{activity.map((item) => <div className="skin-dashboard__activity" key={item.initials}><span className="skin-dashboard__avatar">{item.initials}</span><p><strong>{item.name}</strong> {item.action} <b>{item.target}</b><small>{item.time}</small></p></div>)}</div>
               <button type="button" className="skin-dashboard__text-link" onClick={() => setActiveNav("Insights")}>View activity log <ArrowUpRight /></button>
             </article>
@@ -200,7 +203,7 @@ export function SkinDashboardPreview() {
               <table className="skin-dashboard__table">
                 <thead><tr><th>PROJECT</th><th>TYPE</th><th>PROGRESS</th><th>STATUS</th><th>DUE DATE</th><th /></tr></thead>
                 <tbody>
-                  {filteredProjects.map((project) => <tr key={project.name + project.mark}><td><span className="skin-dashboard__project-mark">{project.mark}</span><strong>{project.name}</strong></td><td>{project.type}</td><td><span className="skin-dashboard__progress"><i style={{ width: project.progress + "%" }} /></span><small>{project.progress}%</small></td><td><span className={"skin-dashboard__status" + (project.status === "Complete" ? " is-complete" : project.status === "In review" ? " is-review" : "")}>{project.status}</span></td><td>{project.due}</td><td><button type="button" className="skin-dashboard__more" aria-label={"Options for " + project.name}><MoreIcon /></button></td></tr>)}
+                  {filteredProjects.map((project) => <tr key={project.name + project.mark}><td><span className="skin-dashboard__project-mark">{project.mark}</span><strong>{project.name}</strong></td><td>{project.type}</td><td><span className="skin-dashboard__progress"><i style={{ width: project.progress + "%" }} /></span><small>{project.progress}%</small></td><td><span className={"skin-dashboard__status" + (project.status === "Complete" ? " is-complete" : project.status === "In review" ? " is-review" : "")}>{project.status}</span></td><td>{project.due}</td><td><span aria-hidden="true" className="skin-dashboard__more"><MoreIcon /></span></td></tr>)}
                   {filteredProjects.length === 0 && <tr><td colSpan={6} className="skin-dashboard__empty">No projects match “{query}”.</td></tr>}
                 </tbody>
               </table>
@@ -208,7 +211,8 @@ export function SkinDashboardPreview() {
             <div className="skin-dashboard__projects-foot"><span>Showing {filteredProjects.length} of {projects.length} projects</span><span>Last synced just now <i /></span></div>
           </section>
 
-          <footer className="skin-dashboard__footer"><span>FORMA WORKSPACE / DEMO DATA</span><span>Designed to adapt with your visual language.</span></footer>
+          <footer className="skin-dashboard__footer"><span>FORMA WORKSPACE / DEMO DATA</span><span>Preview actions are local to this page and are not persisted.</span></footer>
+          <p className="sr-only" role="status" aria-live="polite">{announcement}</p>
         </div>
       </main>
     </div>
