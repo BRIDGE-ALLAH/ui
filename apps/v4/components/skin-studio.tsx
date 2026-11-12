@@ -264,12 +264,10 @@ export function SkinStudio() {
       setNotice(result.error)
       return
     }
+    if (theme.name === source.name && isDirty && !window.confirm("Replace the unsaved draft with the renamed custom skin?")) return
     const next = customSkins.map((skin) => skin.name === source.name ? result.data : skin)
     if (!persistCustomSkins(next)) return
-    if (theme.name === source.name) {
-      if (isDirty && !window.confirm("Replace the unsaved draft with the renamed custom skin?")) return
-      setTheme(result.data)
-    }
+    if (theme.name === source.name) setTheme(result.data)
     if (savedTheme.name === source.name) setSavedTheme(result.data)
     setNotice("Custom skin renamed.")
   }
@@ -302,7 +300,7 @@ export function SkinStudio() {
     applySkin(next)
     setTheme(next)
     setSavedTheme(next)
-    setNotice("Visual identity saved and applied in this browser.")
+    setNotice("Visual identity applied. Browser persistence is available when local storage is permitted.")
   }
 
   function resetTheme() {
