@@ -47,13 +47,15 @@ export function SkinProvider({
   theme?: SkinTheme
 }) {
   const { resolvedTheme } = useTheme()
-  const [skin, setSkinState] = React.useState<SkinTheme>(() =>
-    normalizeSkin(theme ?? DEFAULT_SKIN)
-  )
+  const [skin, setSkinState] = React.useState<SkinTheme>(() => {
+    const result = validateSkinTheme(theme ?? DEFAULT_SKIN)
+    return result.success ? result.data : DEFAULT_SKIN
+  })
 
   React.useEffect(() => {
     if (theme) {
-      setSkinState(normalizeSkin(theme))
+      const result = validateSkinTheme(theme)
+      setSkinState(result.success ? result.data : DEFAULT_SKIN)
       return
     }
 
