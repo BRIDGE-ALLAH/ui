@@ -43,9 +43,9 @@ export const SKIN_STORAGE_KEY = "shadcn-skin"
 const neutralLight: SkinTokens = {
   background:"#ffffff",foreground:"#171717",card:"#ffffff",cardForeground:"#171717",
   popover:"#ffffff",popoverForeground:"#171717",primary:"#171717",primaryForeground:"#fafafa",
-  secondary:"#f5f5f5",secondaryForeground:"#262626",muted:"#f5f5f5",mutedForeground:"#737373",
+  secondary:"#f5f5f5",secondaryForeground:"#262626",muted:"#f5f5f5",mutedForeground:"#6b6b6b",
   accent:"#f5f5f5",accentForeground:"#262626",destructive:"#dc2626",destructiveForeground:"#ffffff",
-  border:"#e5e5e5",input:"#8a8a8a",ring:"#767676",sidebar:"#fafafa",sidebarForeground:"#171717",
+  border:"#e5e5e5",input:"#808080",ring:"#767676",sidebar:"#fafafa",sidebarForeground:"#171717",
   chart1:"#2563eb",chart2:"#15803d",chart3:"#b45309",chart4:"#1d4ed8",chart5:"#1e40af",
   sidebarPrimary:"#171717",sidebarPrimaryForeground:"#fafafa",sidebarAccent:"#f5f5f5",
   sidebarAccentForeground:"#262626",sidebarBorder:"#e5e5e5",sidebarRing:"#767676",
@@ -55,7 +55,7 @@ const neutralLight: SkinTokens = {
 const neutralDark: SkinTokens = {
   background:"#171717",foreground:"#fafafa",card:"#262626",cardForeground:"#fafafa",
   popover:"#262626",popoverForeground:"#fafafa",primary:"#fafafa",primaryForeground:"#262626",
-  secondary:"#404040",secondaryForeground:"#fafafa",muted:"#404040",mutedForeground:"#a3a3a3",
+  secondary:"#404040",secondaryForeground:"#fafafa",muted:"#404040",mutedForeground:"#b3b3b3",
   accent:"#404040",accentForeground:"#fafafa",destructive:"#dc2626",destructiveForeground:"#ffffff",
   border:"#404040",input:"#8a8a8a",ring:"#8a8a8a",sidebar:"#202020",sidebarForeground:"#fafafa",
   chart1:"#60a5fa",chart2:"#4ade80",chart3:"#fbbf24",chart4:"#93c5fd",chart5:"#bfdbfe",
