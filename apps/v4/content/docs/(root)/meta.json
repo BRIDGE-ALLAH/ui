@@ -7,6 +7,7 @@
     "package-imports",
     "theming",
     "skin-system",
+    "skin-system-contributing",
     "typeset",
     "[Dark Mode](/docs/dark-mode)",
     "[RTL](/docs/rtl)",
