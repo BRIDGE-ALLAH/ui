@@ -224,19 +224,8 @@ export function SkinStudio() {
   }
 
   function persistCustomSkins(next: SkinTheme[]) {
-    if (next.length > 100) {
-      setNotice("The custom skin library is limited to 100 skins. Delete one before adding another.")
-      return false
-    }
-
-    const serialized = serializeCustomSkinLibrary(next)
-    if (new Blob([serialized]).size > 512_000) {
-      setNotice("The custom skin library exceeds the 512 KB storage limit. Remove or simplify a skin.")
-      return false
-    }
-
     try {
-      localStorage.setItem(SKIN_CUSTOM_STORAGE_KEY, serialized)
+      localStorage.setItem(SKIN_CUSTOM_STORAGE_KEY, serializeCustomSkinLibrary(next))
       setCustomSkins(next)
       return true
     } catch {
