@@ -231,7 +231,7 @@ export function SkinStudio() {
 
   function createCustomFrom(source: SkinTheme, kind: "custom" | "copy") {
     const name = uniqueSkinName(`${source.name}-${kind}`)
-    const label = kind === "copy" ? `${source.label} Copy` : `${source.label} Custom`
+    const label = (kind === "copy" ? `${source.label} Copy` : `${source.label} Custom`).slice(0, 80)
     const result = buildCustomSkin(source, name, label)
     if (!result.success) {
       setNotice(result.error)
