@@ -212,7 +212,7 @@ export function SkinStudio() {
             Build a point of view, then carry it consistently from the hero canvas to the smallest control.
           </p>
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            <button onClick={saveTheme} className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground">Save visual identity</button>
+            <button type="button" onClick={saveTheme} className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground">Save visual identity</button>
             <span className="text-xs text-muted-foreground">{normalized.label} · {direction.name}</span>
           </div>
         </div>
@@ -224,8 +224,10 @@ export function SkinStudio() {
             {tabs.map((item) => (
               <button
                 key={item.value}
-                onClick={() => setTab(item.value)}
+                type="button"
                 aria-current={tab === item.value ? "step" : undefined}
+                aria-pressed={tab === item.value}
+                onClick={() => setTab(item.value)}
                 className={`rounded-xl px-3 py-3 text-left transition ${tab === item.value ? "bg-background shadow-sm ring-1 ring-border" : "hover:bg-background/70"}`}
               >
                 <span className="block text-sm font-semibold">{item.label}</span>
@@ -242,7 +244,7 @@ export function SkinStudio() {
                   {SKIN_PRESETS.map((preset) => {
                     const presetArt = normalizeSkin(preset).artDirection!
                     return (
-                      <button key={preset.name} onClick={() => setTheme(preset)} className={`group relative overflow-hidden rounded-2xl border p-4 text-left transition hover:-translate-y-0.5 hover:border-primary ${theme.name === preset.name ? "border-primary ring-2 ring-primary/20" : "border-border"}`}>
+                      <button type="button" key={preset.name} aria-pressed={theme.name === preset.name} onClick={() => setTheme(preset)} className={`group relative overflow-hidden rounded-2xl border p-4 text-left transition hover:-translate-y-0.5 hover:border-primary ${theme.name === preset.name ? "border-primary ring-2 ring-primary/20" : "border-border"}`}>
                         <div className="absolute -right-6 -top-7 size-32 text-primary opacity-20 transition group-hover:scale-110">
                           <SkinArtwork variant={presetArt.artwork} className="h-full w-full" />
                         </div>
@@ -256,12 +258,12 @@ export function SkinStudio() {
               </section>
               <section className="space-y-4 rounded-2xl border p-4 md:p-5">
                 <div><h2 className="font-semibold">Write the visual narrative</h2><p className="text-sm text-muted-foreground">Give the system its own premise, mood, and voice. These become reusable design metadata.</p></div>
-                <Field label="Skin name"><input value={theme.label} onChange={(event) => update("label", event.target.value)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" /></Field>
-                <Field label="Narrative title"><input value={direction.narrative.title} onChange={(event) => updateNarrative("title", event.target.value)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" /></Field>
-                <Field label="Design thesis" hint="The one-sentence idea behind the visual identity."><textarea rows={2} value={direction.narrative.thesis} onChange={(event) => updateNarrative("thesis", event.target.value)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" /></Field>
+                <Field label="Skin name"><input aria-label="Skin name" value={theme.label} onChange={(event) => update("label", event.target.value)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" /></Field>
+                <Field label="Narrative title"><input aria-label="Narrative title" value={direction.narrative.title} onChange={(event) => updateNarrative("title", event.target.value)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" /></Field>
+                <Field label="Design thesis" hint="The one-sentence idea behind the visual identity."><textarea aria-label="Design thesis" rows={2} value={direction.narrative.thesis} onChange={(event) => updateNarrative("thesis", event.target.value)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" /></Field>
                 <div className="grid gap-3 md:grid-cols-2">
-                  <Field label="Atmosphere"><textarea rows={2} value={direction.narrative.atmosphere} onChange={(event) => updateNarrative("atmosphere", event.target.value)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" /></Field>
-                  <Field label="Voice"><textarea rows={2} value={direction.narrative.voice} onChange={(event) => updateNarrative("voice", event.target.value)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" /></Field>
+                  <Field label="Atmosphere"><textarea aria-label="Atmosphere" rows={2} value={direction.narrative.atmosphere} onChange={(event) => updateNarrative("atmosphere", event.target.value)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" /></Field>
+                  <Field label="Voice"><textarea aria-label="Voice" rows={2} value={direction.narrative.voice} onChange={(event) => updateNarrative("voice", event.target.value)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" /></Field>
                 </div>
               </section>
               <section className="space-y-3 rounded-2xl border p-4 md:p-5">
@@ -281,7 +283,7 @@ export function SkinStudio() {
                   ]} />
                 </Field>
                 <Field label="Narrative keywords" hint="Comma-separated words that define the identity.">
-                  <input value={direction.narrative.keywords.join(", ")} onChange={(event) => updateKeywords(event.target.value)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
+                  <input aria-label="Narrative keywords" value={direction.narrative.keywords.join(", ")} onChange={(event) => updateKeywords(event.target.value)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
                 </Field>
               </section>
             </div>
@@ -292,8 +294,8 @@ export function SkinStudio() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div><h2 className="text-lg font-semibold">Semantic color language</h2><p className="text-sm text-muted-foreground">Color roles are mapped to shadcn's CSS variable contract.</p></div>
                 <div className="flex rounded-lg bg-muted p-1">
-                  <button onClick={() => setMode("light")} className={`rounded-md px-3 py-1.5 text-sm ${mode === "light" ? "bg-background shadow-sm" : "text-muted-foreground"}`}>Light</button>
-                  <button onClick={() => setMode("dark")} className={`rounded-md px-3 py-1.5 text-sm ${mode === "dark" ? "bg-background shadow-sm" : "text-muted-foreground"}`}>Dark</button>
+                  <button type="button" aria-pressed={mode === "light"} onClick={() => setMode("light")} className={`rounded-md px-3 py-1.5 text-sm ${mode === "light" ? "bg-background shadow-sm" : "text-muted-foreground"}`}>Light</button>
+                  <button type="button" aria-pressed={mode === "dark"} onClick={() => setMode("dark")} className={`rounded-md px-3 py-1.5 text-sm ${mode === "dark" ? "bg-background shadow-sm" : "text-muted-foreground"}`}>Dark</button>
                 </div>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -311,7 +313,7 @@ export function SkinStudio() {
             <div className="space-y-5 rounded-2xl border p-4 md:p-5">
               <div><h2 className="text-lg font-semibold">Design craft</h2><p className="text-sm text-muted-foreground">The small decisions that make a system feel unmistakably itself.</p></div>
               <Field label="Body typography">
-                <select value={theme.font} onChange={(event) => update("font", event.target.value)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm">
+                <select aria-label="Body typography" value={theme.font} onChange={(event) => update("font", event.target.value)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm">
                   <option value="Inter, ui-sans-serif, system-ui, sans-serif">Inter / System</option>
                   <option value="Geist, ui-sans-serif, system-ui, sans-serif">Geist</option>
                   <option value="Arial, Helvetica, sans-serif">Arial</option>
@@ -320,7 +322,7 @@ export function SkinStudio() {
                 </select>
               </Field>
               <Field label="Display typography" hint="Used for expressive headings and hero statements.">
-                <select value={direction.headingFont} onChange={(event) => updateDirection("headingFont", event.target.value)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm">
+                <select aria-label="Display typography" value={direction.headingFont} onChange={(event) => updateDirection("headingFont", event.target.value)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm">
                   <option value="Georgia, 'Times New Roman', serif">Editorial serif</option>
                   <option value="Inter, ui-sans-serif, system-ui, sans-serif">Modern sans</option>
                   <option value="Arial, Helvetica, sans-serif">Grotesk sans</option>
@@ -329,7 +331,7 @@ export function SkinStudio() {
                 </select>
               </Field>
               <Field label="Corner radius" hint={`Current base radius: ${theme.radius}px`}>
-                <input type="range" min="0" max="28" value={theme.radius} onChange={(event) => update("radius", Number(event.target.value))} className="w-full accent-primary" />
+                <input aria-label="Corner radius" type="range" min="0" max="28" value={theme.radius} onChange={(event) => update("radius", Number(event.target.value))} className="w-full accent-primary" />
               </Field>
               <Field label="Density">
                 <Choice value={theme.density} onChange={(value) => update("density", value)} options={[
@@ -381,32 +383,32 @@ export function SkinStudio() {
             <div className="space-y-4">
               <div><h2 className="text-lg font-semibold">Package the visual identity</h2><p className="text-sm text-muted-foreground">Export design tokens, narrative metadata, and shadcn-compatible theme variables.</p></div>
               <div className="flex gap-2 rounded-xl bg-muted p-1">
-                <button onClick={() => setFormat("css")} className={`flex-1 rounded-lg px-3 py-2 text-sm ${format === "css" ? "bg-background shadow-sm" : "text-muted-foreground"}`}>CSS variables</button>
-                <button onClick={() => setFormat("json")} className={`flex-1 rounded-lg px-3 py-2 text-sm ${format === "json" ? "bg-background shadow-sm" : "text-muted-foreground"}`}>Registry JSON</button>
+                <button type="button" aria-pressed={format === "css"} onClick={() => setFormat("css")} className={`flex-1 rounded-lg px-3 py-2 text-sm ${format === "css" ? "bg-background shadow-sm" : "text-muted-foreground"}`}>CSS variables</button>
+                <button type="button" aria-pressed={format === "json"} onClick={() => setFormat("json")} className={`flex-1 rounded-lg px-3 py-2 text-sm ${format === "json" ? "bg-background shadow-sm" : "text-muted-foreground"}`}>Registry JSON</button>
               </div>
               <pre className="max-h-[420px] overflow-auto rounded-xl bg-muted p-4 text-xs leading-relaxed"><code>{output}</code></pre>
               <div className="flex flex-wrap gap-2">
-                <button onClick={copyOutput} className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground">{copied ? <IconCheck size={16} /> : <IconCopy size={16} />} Copy</button>
-                <button onClick={() => downloadFile(`${theme.name}.${format === "css" ? "css" : "json"}`, output, format === "css" ? "text/css" : "application/json")} className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"><IconDownload size={16} /> Download</button>
-                <button onClick={downloadArtwork} className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"><IconDownload size={16} /> Vector SVG</button>
-                <button onClick={() => setTheme(DEFAULT_SKIN)} className="rounded-lg border px-3 py-2 text-sm">Reset</button>
+                <button type="button" onClick={copyOutput} className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground">{copied ? <IconCheck size={16} /> : <IconCopy size={16} />} Copy</button>
+                <button type="button" onClick={() => downloadFile(`${theme.name}.${format === "css" ? "css" : "json"}`, output, format === "css" ? "text/css" : "application/json")} className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"><IconDownload size={16} /> Download</button>
+                <button type="button" onClick={downloadArtwork} className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"><IconDownload size={16} /> Vector SVG</button>
+                <button type="button" onClick={() => setTheme(DEFAULT_SKIN)} className="rounded-lg border px-3 py-2 text-sm">Reset</button>
               </div>
               <Field label="Import an existing SkinTheme or shadcn registry theme">
-                <textarea value={importValue} onChange={(event) => setImportValue(event.target.value)} rows={6} placeholder="Paste JSON here…" className="w-full rounded-lg border bg-background px-3 py-2 font-mono text-xs" />
-                <button onClick={importTheme} className="mt-2 inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"><IconUpload size={16} /> Import JSON</button>
+                <textarea aria-label="Import SkinTheme JSON" value={importValue} onChange={(event) => setImportValue(event.target.value)} rows={6} placeholder="Paste JSON here…" className="w-full rounded-lg border bg-background px-3 py-2 font-mono text-xs" />
+                <button type="button" onClick={importTheme} className="mt-2 inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"><IconUpload size={16} /> Import JSON</button>
               </Field>
-              {notice && <p role="status" className="text-xs text-muted-foreground">{notice}</p>}
+              {notice && <p role="status" aria-live="polite" className="text-xs text-muted-foreground">{notice}</p>}
             </div>
           )}
-          {notice && tab !== "export" && <p role="status" className="text-xs text-muted-foreground">{notice}</p>}
+          {notice && tab !== "export" && <p role="status" aria-live="polite" className="text-xs text-muted-foreground">{notice}</p>}
         </section>
 
         <aside className="min-w-0 space-y-3 xl:sticky xl:top-24 xl:self-start">
           <div className="flex items-center justify-between gap-3">
             <div><h2 className="font-semibold">Live art direction preview</h2><p className="text-xs text-muted-foreground">{direction.name} · {mode} mode</p></div>
             <div className="flex rounded-lg border p-1">
-              <button aria-label="Light preview" onClick={() => setMode("light")} className={`rounded-md p-2 ${mode === "light" ? "bg-muted" : ""}`}><IconSun size={16} /></button>
-              <button aria-label="Dark preview" onClick={() => setMode("dark")} className={`rounded-md p-2 ${mode === "dark" ? "bg-muted" : ""}`}><IconMoon size={16} /></button>
+              <button type="button" aria-label="Light preview" aria-pressed={mode === "light"} onClick={() => setMode("light")} className={`rounded-md p-2 ${mode === "light" ? "bg-muted" : ""}`}><IconSun size={16} /></button>
+              <button type="button" aria-label="Dark preview" aria-pressed={mode === "dark"} onClick={() => setMode("dark")} className={`rounded-md p-2 ${mode === "dark" ? "bg-muted" : ""}`}><IconMoon size={16} /></button>
             </div>
           </div>
           <div
@@ -428,8 +430,8 @@ export function SkinStudio() {
                 <h3 className="skin-hero__title mt-4 text-3xl leading-[1.02]">{direction.narrative.title}</h3>
                 <p className="skin-hero__description mt-4 max-w-sm text-sm leading-6">{direction.narrative.thesis}</p>
                 <div className="mt-6 flex flex-wrap gap-2">
-                  <button className="skin-control bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)]">Explore system</button>
-                  <button className="skin-control border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm">Read the story</button>
+                  <span aria-hidden="true" className="skin-control inline-flex bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)]">Explore system</span>
+                  <span aria-hidden="true" className="skin-control inline-flex border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm">Read the story</span>
                 </div>
               </div>
             </div>
@@ -445,11 +447,11 @@ export function SkinStudio() {
               <div className="skin-surface skin-surface--panel p-4">
                 <div className="flex items-center justify-between"><p className="text-sm font-semibold">Components in context</p><span className="text-[10px] opacity-60">PREVIEW</span></div>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <button className="skin-control bg-[var(--primary)] px-3 py-2 text-xs text-[var(--primary-foreground)]">Primary action</button>
-                  <button className="skin-control border border-[var(--border)] bg-[var(--secondary)] px-3 py-2 text-xs">Secondary</button>
+                  <span aria-hidden="true" className="skin-control inline-flex bg-[var(--primary)] px-3 py-2 text-xs text-[var(--primary-foreground)]">Primary action</span>
+                  <span aria-hidden="true" className="skin-control inline-flex border border-[var(--border)] bg-[var(--secondary)] px-3 py-2 text-xs">Secondary</span>
                   <span className="rounded-full bg-[var(--accent)] px-3 py-2 text-xs">Badge / signal</span>
                 </div>
-                <input aria-label="Preview search field" placeholder="A field, in the same language…" className="skin-control mt-3 w-full border border-[var(--input)] bg-[var(--background)] px-3 py-2 text-sm outline-none placeholder:text-[var(--muted-foreground)] focus:ring-2 focus:ring-[var(--ring)]" />
+                <input aria-label="Preview search field (disabled preview)" disabled placeholder="A field, in the same language…" className="skin-control mt-3 w-full border border-[var(--input)] bg-[var(--background)] px-3 py-2 text-sm outline-none placeholder:text-[var(--muted-foreground)] focus:ring-2 focus:ring-[var(--ring)]" />
               </div>
               <div className="skin-surface skin-surface--panel p-4">
                 <p className="text-xs uppercase tracking-widest opacity-60">Atmosphere</p>
