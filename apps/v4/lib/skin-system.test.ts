@@ -5,6 +5,9 @@ import {
   DEFAULT_ART_DIRECTION,
   DEFAULT_SKIN,
   SKIN_PRESETS,
+  buildCustomSkin,
+  parseCustomSkinLibrary,
+  serializeCustomSkinLibrary,
   SKIN_TOKEN_LABELS,
   normalizeSkin,
   parseSkinImport,
@@ -241,6 +244,38 @@ describe("Skin System pure utilities", () => {
         }
       }
     }
+  })
+
+  it("creates and duplicates custom skins without mutating built-in presets", () => {
+    const created = buildCustomSkin(DEFAULT_SKIN, "quiet-editorial-copy", "Quiet Editorial Copy")
+    expect(created.success).toBe(true)
+    if (!created.success) return
+
+    created.data.light.background = "#fefefe"
+    expect(DEFAULT_SKIN.light.background).not.toBe("#fefefe")
+    expect(DEFAULT_SKIN.name).toBe("neutral")
+
+    const duplicate = buildCustomSkin(created.data, "quiet-editorial-copy-2", "Quiet Editorial Copy 2")
+    expect(duplicate.success).toBe(true)
+    if (duplicate.success) {
+      expect(duplicate.data.name).toBe("quiet-editorial-copy-2")
+      expect(duplicate.data.artDirection?.narrative.title).toBe(DEFAULT_SKIN.artDirection?.narrative.title)
+    }
+  })
+
+  it("validates and round-trips the versioned custom skin library", () => {
+    const custom = buildCustomSkin(DEFAULT_SKIN, "neutral-custom", "Neutral Custom")
+    expect(custom.success).toBe(true)
+    if (!custom.success) return
+
+    const json = serializeCustomSkinLibrary([custom.data])
+    const parsed = parseCustomSkinLibrary(json)
+    expect(parsed.success).toBe(true)
+    if (parsed.success) expect(parsed.data[0].name).toBe("neutral-custom")
+
+    expect(parseCustomSkinLibrary(JSON.stringify({ schemaVersion: 2, skins: [] })).success).toBe(false)
+    expect(parseCustomSkinLibrary(JSON.stringify({ schemaVersion: 1, skins: [DEFAULT_SKIN] })).success).toBe(false)
+    expect(parseCustomSkinLibrary(JSON.stringify({ schemaVersion: 1, skins: [custom.data, custom.data] })).success).toBe(false)
   })
 
 })
