@@ -13,7 +13,25 @@ import {
   skinToRegistryItem,
   skinToStyle,
   type SkinTheme,
+  type SkinTokens,
 } from "./skin-system"
+
+
+function relativeLuminance(hex: string) {
+  const value = hex.replace("#", "")
+  const normalized = value.length === 3 ? value.split("").map((part) => part + part).join("") : value
+  const channels = [0, 2, 4].map((offset) => parseInt(normalized.slice(offset, offset + 2), 16) / 255)
+  const linear = channels.map((channel) =>
+    channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4
+  )
+  return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722
+}
+
+function contrastRatio(foreground: string, background: string) {
+  const first = relativeLuminance(foreground)
+  const second = relativeLuminance(background)
+  return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05)
+}
 
 describe("Skin System pure utilities", () => {
   it("normalizes all authored presets without losing their narratives", () => {
@@ -76,6 +94,8 @@ describe("Skin System pure utilities", () => {
     expect(style["--skin-density-factor"]).toBe("0.82")
     expect(style["--skin-card-shadow"]).toBe("none")
     expect(style["--radius"]).toBe("12px")
+    expect(style["--skin-body-font"]).toBe(theme.font)
+    expect(style["--skin-heading-font"]).toBe(theme.artDirection?.headingFont)
     const darkStyle = skinToStyle(theme, "dark")
     expect(darkStyle["--background"]).toBe(theme.dark.background)
     expect(darkStyle["--sidebar-primary"]).toBe(theme.dark.sidebarPrimary)
@@ -156,6 +176,67 @@ describe("Skin System pure utilities", () => {
         const cssName = key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`).replace(/chart([1-5])$/, "chart-$1")
         expect(style[`--${cssName}`]).toBe(preset.light[key])
         expect(registry.cssVars.light[cssName]).toBe(preset.light[key])
+      }
+    }
+  })
+
+  it("maps typography and craft enums to distinct runtime values", () => {
+    const still = skinToStyle(SKIN_PRESETS[0], "light") as Record<string, string>
+    const slow = skinToStyle(SKIN_PRESETS[1], "light") as Record<string, string>
+    const kinetic = skinToStyle(SKIN_PRESETS[7], "light") as Record<string, string>
+
+    expect(still["--skin-motion-duration"]).toBe("0ms")
+    expect(slow["--skin-motion-duration"]).toBe("650ms")
+    expect(kinetic["--skin-motion-duration"]).toBe("180ms")
+    expect(still["--skin-heading-tracking"]).toBe("-0.04em")
+    expect(slow["--skin-surface-blur"]).toBe("18px")
+    expect(kinetic["--skin-art-opacity"]).toBe("0.68")
+  })
+
+  it("meets WCAG text and non-text contrast thresholds for all nine presets and both modes", () => {
+    const textPairs: [keyof SkinTokens, keyof SkinTokens][] = [
+      ["foreground", "background"],
+      ["cardForeground", "card"],
+      ["popoverForeground", "popover"],
+      ["primaryForeground", "primary"],
+      ["secondaryForeground", "secondary"],
+      ["mutedForeground", "muted"],
+      ["accentForeground", "accent"],
+      ["destructiveForeground", "destructive"],
+      ["sidebarForeground", "sidebar"],
+      ["sidebarPrimaryForeground", "sidebarPrimary"],
+      ["sidebarAccentForeground", "sidebarAccent"],
+      ["surfaceForeground", "surface"],
+      ["codeForeground", "code"],
+      ["codeNumber", "code"],
+      ["selectionForeground", "selection"],
+    ]
+    const nonTextPairs: [keyof SkinTokens, keyof SkinTokens][] = [
+      ["input", "background"],
+      ["ring", "background"],
+      ["sidebarRing", "sidebar"],
+      ["chart1", "background"],
+      ["chart2", "background"],
+      ["chart3", "background"],
+      ["chart4", "background"],
+      ["chart5", "background"],
+    ]
+
+    for (const preset of SKIN_PRESETS) {
+      for (const mode of ["light", "dark"] as const) {
+        const tokens = preset[mode]
+        for (const [foreground, background] of textPairs) {
+          expect(
+            contrastRatio(tokens[foreground], tokens[background]),
+            `${preset.name} ${mode}: ${foreground} on ${background}`
+          ).toBeGreaterThanOrEqual(4.5)
+        }
+        for (const [foreground, background] of nonTextPairs) {
+          expect(
+            contrastRatio(tokens[foreground], tokens[background]),
+            `${preset.name} ${mode}: ${foreground} against ${background}`
+          ).toBeGreaterThanOrEqual(3)
+        }
       }
     }
   })

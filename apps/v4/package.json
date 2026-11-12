@@ -25,7 +25,8 @@
     "validate:registries": "tsx --tsconfig ./tsconfig.scripts.json ./scripts/validate-registries.mts",
     "test:apps": "bun run ./scripts/build-test-app.mts",
     "postinstall": "fumadocs-mdx",
-    "test": "vitest run --config ../../vitest.config.ts lib/skin-system.test.ts"
+    "test": "vitest run --config ../../vitest.config.ts lib/skin-system.test.ts",
+    "skin:contrast": "tsx --tsconfig ./tsconfig.scripts.json ./scripts/skin-contrast-report.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "4.0.0-canary.66",

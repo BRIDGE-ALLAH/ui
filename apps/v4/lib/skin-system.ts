@@ -43,24 +43,24 @@ export const SKIN_STORAGE_KEY = "shadcn-skin"
 const neutralLight: SkinTokens = {
   background:"#ffffff",foreground:"#171717",card:"#ffffff",cardForeground:"#171717",
   popover:"#ffffff",popoverForeground:"#171717",primary:"#171717",primaryForeground:"#fafafa",
-  secondary:"#f5f5f5",secondaryForeground:"#262626",muted:"#f5f5f5",mutedForeground:"#737373",
+  secondary:"#f5f5f5",secondaryForeground:"#262626",muted:"#f5f5f5",mutedForeground:"#6b6b6b",
   accent:"#f5f5f5",accentForeground:"#262626",destructive:"#dc2626",destructiveForeground:"#ffffff",
-  border:"#e5e5e5",input:"#e5e5e5",ring:"#a3a3a3",sidebar:"#fafafa",sidebarForeground:"#171717",
-  chart1:"#2563eb",chart2:"#16a34a",chart3:"#d97706",chart4:"#1d4ed8",chart5:"#1e40af",
+  border:"#e5e5e5",input:"#808080",ring:"#767676",sidebar:"#fafafa",sidebarForeground:"#171717",
+  chart1:"#2563eb",chart2:"#15803d",chart3:"#b45309",chart4:"#1d4ed8",chart5:"#1e40af",
   sidebarPrimary:"#171717",sidebarPrimaryForeground:"#fafafa",sidebarAccent:"#f5f5f5",
-  sidebarAccentForeground:"#262626",sidebarBorder:"#e5e5e5",sidebarRing:"#a3a3a3",
+  sidebarAccentForeground:"#262626",sidebarBorder:"#e5e5e5",sidebarRing:"#767676",
   surface:"#fafafa",surfaceForeground:"#171717",code:"#fafafa",codeForeground:"#262626",
   codeHighlight:"#f5f5f5",codeNumber:"#737373",selection:"#171717",selectionForeground:"#ffffff",
 }
 const neutralDark: SkinTokens = {
   background:"#171717",foreground:"#fafafa",card:"#262626",cardForeground:"#fafafa",
   popover:"#262626",popoverForeground:"#fafafa",primary:"#fafafa",primaryForeground:"#262626",
-  secondary:"#404040",secondaryForeground:"#fafafa",muted:"#404040",mutedForeground:"#a3a3a3",
-  accent:"#404040",accentForeground:"#fafafa",destructive:"#ef4444",destructiveForeground:"#ffffff",
-  border:"#404040",input:"#525252",ring:"#737373",sidebar:"#202020",sidebarForeground:"#fafafa",
+  secondary:"#404040",secondaryForeground:"#fafafa",muted:"#404040",mutedForeground:"#b3b3b3",
+  accent:"#404040",accentForeground:"#fafafa",destructive:"#dc2626",destructiveForeground:"#ffffff",
+  border:"#404040",input:"#8a8a8a",ring:"#8a8a8a",sidebar:"#202020",sidebarForeground:"#fafafa",
   chart1:"#60a5fa",chart2:"#4ade80",chart3:"#fbbf24",chart4:"#93c5fd",chart5:"#bfdbfe",
   sidebarPrimary:"#fafafa",sidebarPrimaryForeground:"#262626",sidebarAccent:"#404040",
-  sidebarAccentForeground:"#fafafa",sidebarBorder:"#404040",sidebarRing:"#737373",
+  sidebarAccentForeground:"#fafafa",sidebarBorder:"#404040",sidebarRing:"#8a8a8a",
   surface:"#262626",surfaceForeground:"#fafafa",code:"#262626",codeForeground:"#fafafa",
   codeHighlight:"#404040",codeNumber:"#a3a3a3",selection:"#fafafa",selectionForeground:"#262626",
 }
@@ -95,8 +95,8 @@ function palette(
     name:label.toLowerCase().replace(/[^a-z0-9]+/g,"-"),label,
     radius:10,font:"Inter, ui-sans-serif, system-ui, sans-serif",
     density:"comfortable",shadow:"soft",artDirection,
-    light:{...neutralLight,background,foreground,primary,primaryForeground,ring:primary},
-    dark:{...neutralDark,background:darkBackground,foreground:darkForeground,primary:darkPrimary,primaryForeground:darkPrimaryForeground,ring:darkPrimary},
+    light:{...neutralLight,background,foreground,primary,primaryForeground,ring:neutralLight.ring},
+    dark:{...neutralDark,background:darkBackground,foreground:darkForeground,primary:darkPrimary,primaryForeground:darkPrimaryForeground,ring:neutralDark.ring},
   }
 }
 export const SKIN_PRESETS:SkinTheme[]=[
@@ -112,7 +112,7 @@ export const SKIN_PRESETS:SkinTheme[]=[
     art("Prismatic field","Many perspectives, one coherent story","Layered translucent planes create depth and dimensionality.","Iridescent, layered, contemplative.","Curious, imaginative, and articulate.",["prism","depth","possibility"],"stained-glass","cinematic","mesh","soft","glass","slow","Georgia, serif","tight")),
   palette("Amber","#b45309","#ffffff","#fbbf24","#451a03","#fffdf7","#21190b","#3d2b13","#fff6df",
     art("Printed matter","Every detail earns its place","A warm editorial system inspired by ink, paper, and print.","Analog, warm, archival.","Direct, crafted, and timeless.",["paper","ink","archive"],"geometry","editorial","paper","cut","paper","still","Georgia, serif","wide")),
-  palette("Nord","#5e81ac","#ffffff","#88c0d0","#2e3440","#eceff4","#2e3440","#2e3440","#eceff4",
+  palette("Nord","#54769f","#ffffff","#88c0d0","#2e3440","#eceff4","#2e3440","#2e3440","#eceff4",
     art("Quiet instrument","Precision without the noise","A measured grid makes complex information feel navigable.","Cool, technical, balanced.","Exact, composed, and helpful.",["grid","signal","precision"],"geometry","instrument","none","sharp","matte","still","ui-monospace, monospace","normal")),
   palette("Dracula","#bd93f9","#282a36","#ff79c6","#282a36","#f8f7fc","#282a36","#282a36","#f8f8f2",
     art("Night theatre","A little drama, perfectly controlled","High contrast and focused highlights turn the interface into a stage.","Nocturnal, theatrical, electric.","Bold, witty, and incisive.",["noir","contrast","stage"],"orbit","cinematic","grain","sharp","glass","kinetic","Georgia, serif","tight")),
