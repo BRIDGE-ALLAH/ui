@@ -172,6 +172,7 @@ describe("Skin System pure utilities", () => {
       }
       const style = skinToStyle(preset, "light") as Record<string, string>
       expect(style["--overlay"]).toBe(preset.light.overlay)
+      expect(registry.cssVars.light.overlay).toBe(preset.light.overlay)
       const registry = skinToRegistryItem(preset)
       for (const { key } of SKIN_TOKEN_LABELS) {
         const cssName = key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`).replace(/chart([1-5])$/, "chart-$1")
