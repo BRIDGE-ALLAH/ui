@@ -1,6 +1,6 @@
 # Skin System release gate
 
-<badge>Release blocked — validation evidence pending</badge>
+**Release blocked — validation evidence pending.**
 
 This is a release-readiness checklist and draft changelog only. It does not authorize a release, tag, or version bump. The follow-up implementation PRs must be merged and all required evidence recorded before release.
 
