@@ -17,7 +17,7 @@ This matrix is the repeatable manual verification contract for `/skin-studio`. I
 
 - [ ] Tab reaches section navigation, preset choices, every editor field, mode controls, export actions, import, and save.
 - [ ] Enter/Space activates buttons and choice controls.
-- [ ] Section navigation exposes tablist/tab/tabpanel relationships and selected state.
+- [ ] Section navigation exposes the current section through pressed/current state.
 - [ ] Preset choices and light/dark/export-format choices expose pressed/selected state.
 - [ ] Every input, select, range, color input, and textarea has an accessible name.
 - [ ] Save/import/export feedback is announced through a polite status region.
