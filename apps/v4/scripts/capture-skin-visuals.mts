@@ -25,12 +25,11 @@ async function captureRoute(
   mode: "light" | "dark",
   viewport: (typeof viewports)[number]
 ) {
-  const page = await browser.newPage({
-    viewport: {
-      width: viewport.width,
-      height: viewport.height,
-      deviceScaleFactor: 1,
-    },
+  const page = await browser.newPage()
+  await page.setViewport({
+    width: viewport.width,
+    height: viewport.height,
+    deviceScaleFactor: 1,
   })
 
   await page.emulateMediaFeatures([
