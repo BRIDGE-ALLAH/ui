@@ -314,6 +314,9 @@ export function buildCustomSkin(
 ): SkinValidationResult {
   const sourceResult = validateSkinTheme(source)
   if (!sourceResult.success) return sourceResult
+  if (SKIN_PRESETS.some((preset) => preset.name === name)) {
+    return { success: false, error: "Custom skin names cannot reuse built-in preset names." }
+  }
   return validateSkinTheme({
     ...normalizeSkin(sourceResult.data),
     name,
