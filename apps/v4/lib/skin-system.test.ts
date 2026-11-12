@@ -6,6 +6,8 @@ import {
   DEFAULT_SKIN,
   SKIN_PRESETS,
   normalizeSkin,
+  parseSkinImport,
+  validateSkinTheme,
   skinToCss,
   skinToRegistryItem,
   skinToStyle,
@@ -100,5 +102,38 @@ describe("Skin System pure utilities", () => {
       DEFAULT_SKIN.artDirection?.name
     )
     expect(item.meta["skin-craft"]).toContain(DEFAULT_SKIN.density)
+    expect(item.meta["skin-schema-version"]).toBe("1")
   })
+  it("validates legacy and versioned SkinTheme objects", () => {
+    expect(validateSkinTheme(DEFAULT_SKIN).success).toBe(true)
+    expect(validateSkinTheme({ ...DEFAULT_SKIN, schemaVersion: 2 }).success).toBe(false)
+    expect(validateSkinTheme({ ...DEFAULT_SKIN, radius: 100 }).success).toBe(false)
+    expect(validateSkinTheme({ ...DEFAULT_SKIN, name: "../unsafe" }).success).toBe(false)
+    expect(validateSkinTheme({ ...DEFAULT_SKIN, light: { ...DEFAULT_SKIN.light, background: "red; color: black" } }).success).toBe(false)
+  })
+
+  it("imports SkinTheme JSON and registry JSON through one validated path", () => {
+    const direct = parseSkinImport(JSON.stringify(DEFAULT_SKIN))
+    expect(direct.success).toBe(true)
+    if (direct.success) expect(direct.data.name).toBe(DEFAULT_SKIN.name)
+
+    const registry = parseSkinImport(JSON.stringify(skinToRegistryItem(DEFAULT_SKIN)))
+    expect(registry.success).toBe(true)
+    if (registry.success) {
+      expect(registry.data.name).toBe(DEFAULT_SKIN.name)
+      expect(registry.data.light.background).toBe(DEFAULT_SKIN.light.background)
+      expect(registry.data.artDirection?.narrative.title).toBe(DEFAULT_SKIN.artDirection?.narrative.title)
+    }
+  })
+
+  it("rejects malformed, oversized, and unsupported registry imports", () => {
+    expect(parseSkinImport("{").success).toBe(false)
+    expect(parseSkinImport(" ".repeat(256_001)).success).toBe(false)
+    const item = skinToRegistryItem(DEFAULT_SKIN)
+    expect(parseSkinImport(JSON.stringify({
+      ...item,
+      meta: { ...item.meta, "skin-schema-version": "99" },
+    })).success).toBe(false)
+  })
+
 })
