@@ -830,6 +830,8 @@
 [data-skin] .skin-dashboard__hero-art { right:-18%; width:85%; opacity:.25; } .skin-dashboard__lower-grid { grid-template-columns:1fr; } .skin-dashboard__footer { flex-direction:column; gap:.35rem; }
 }
 @media(max-width:430px) {
+[data-skin] .skin-dashboard__breadcrumbs { display:none; }
+[data-skin] .skin-dashboard__search { width:min(42vw,17rem); }
 [data-skin] .skin-dashboard__metrics { grid-template-columns:repeat(2,minmax(0,1fr)); gap:.5rem; } .skin-dashboard__metric { padding:.75rem; }
 [data-skin] .skin-dashboard__metric>strong { font-size:1.55rem; } .skin-dashboard__metric-spark { display:none; } .skin-dashboard__top-actions { gap:.4rem; }
 [data-skin] .skin-dashboard__breadcrumbs { font-size:.64rem; } .skin-dashboard__icon-button,[data-skin] .skin-dashboard__avatar--top { width:2rem; height:2rem; }
