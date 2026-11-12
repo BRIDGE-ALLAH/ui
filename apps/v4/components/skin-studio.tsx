@@ -269,6 +269,7 @@ export function SkinStudio() {
     if (!persistCustomSkins(next)) return
     if (theme.name === source.name) setTheme(result.data)
     if (savedTheme.name === source.name) setSavedTheme(result.data)
+    if (savedTheme.name === source.name || appliedSkin.name === source.name) applySkin(result.data)
     setNotice("Custom skin renamed.")
   }
 
@@ -278,7 +279,7 @@ export function SkinStudio() {
     if (!persistCustomSkins(next)) return
     if (theme.name === source.name) setTheme(DEFAULT_SKIN)
     if (savedTheme.name === source.name) setSavedTheme(DEFAULT_SKIN)
-    if (appliedSkin.name === source.name) applySkin(DEFAULT_SKIN)
+    if (appliedSkin.name === source.name || savedTheme.name === source.name) applySkin(DEFAULT_SKIN)
     setNotice("Custom skin deleted from this browser.")
   }
 
