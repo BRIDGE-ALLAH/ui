@@ -242,6 +242,10 @@ export function parseSkinImport(json: string): SkinValidationResult {
     }
     try {
       const meta = isRecord(parsed.meta) ? parsed.meta : {}
+      const schemaVersion = meta["skin-schema-version"]
+      if (schemaVersion !== undefined && schemaVersion !== "1") {
+        return { success: false, error: "Unsupported registry skin schema version." }
+      }
       const artDirection = typeof meta["skin-art-direction"] === "string"
         ? JSON.parse(meta["skin-art-direction"])
         : DEFAULT_SKIN.artDirection
@@ -294,7 +298,7 @@ export function skinToRegistryItem(themeInput:SkinTheme){
     type:"registry:theme",
     title:theme.label,
     description:theme.description??theme.artDirection?.narrative.thesis??`Custom ${theme.label} visual system`,
-    meta:{"skin-art-direction":JSON.stringify(theme.artDirection),"skin-craft":JSON.stringify({density:theme.density,shadow:theme.shadow})},
+    meta:{"skin-schema-version":"1","skin-art-direction":JSON.stringify(theme.artDirection),"skin-craft":JSON.stringify({density:theme.density,shadow:theme.shadow})},
     cssVars:{
       light:map(theme.light),
       dark:map(theme.dark),
