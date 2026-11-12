@@ -220,15 +220,13 @@ export function SkinStudio() {
 
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.92fr)]">
         <section className="min-w-0 space-y-5">
-          <nav role="tablist" aria-label="Skin studio sections" className="grid grid-cols-2 gap-2 rounded-2xl border bg-muted/40 p-2 lg:grid-cols-4">
+          <nav aria-label="Skin studio sections" className="grid grid-cols-2 gap-2 rounded-2xl border bg-muted/40 p-2 lg:grid-cols-4">
             {tabs.map((item) => (
               <button
                 key={item.value}
                 type="button"
-                role="tab"
-                id={`skin-studio-tab-${item.value}`}
-                aria-selected={tab === item.value}
-                aria-controls={`skin-studio-panel-${item.value}`}
+                aria-current={tab === item.value ? "step" : undefined}
+                aria-pressed={tab === item.value}
                 onClick={() => setTab(item.value)}
                 className={`rounded-xl px-3 py-3 text-left transition ${tab === item.value ? "bg-background shadow-sm ring-1 ring-border" : "hover:bg-background/70"}`}
               >
@@ -239,7 +237,7 @@ export function SkinStudio() {
           </nav>
 
           {tab === "identity" && (
-            <div id="skin-studio-panel-identity" role="tabpanel" aria-labelledby="skin-studio-tab-identity" tabIndex={0} className="space-y-6">
+            <div className="space-y-6">
               <section className="space-y-3">
                 <div><h2 className="text-lg font-semibold">Choose an art direction</h2><p className="text-sm text-muted-foreground">Each preset is a visual thesis: it changes the language, not just the palette.</p></div>
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -292,7 +290,7 @@ export function SkinStudio() {
           )}
 
           {tab === "palette" && (
-            <div id="skin-studio-panel-palette" role="tabpanel" aria-labelledby="skin-studio-tab-palette" tabIndex={0} className="space-y-4">
+            <div className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div><h2 className="text-lg font-semibold">Semantic color language</h2><p className="text-sm text-muted-foreground">Color roles are mapped to shadcn's CSS variable contract.</p></div>
                 <div className="flex rounded-lg bg-muted p-1">
@@ -312,7 +310,7 @@ export function SkinStudio() {
           )}
 
           {tab === "craft" && (
-            <div id="skin-studio-panel-craft" role="tabpanel" aria-labelledby="skin-studio-tab-craft" tabIndex={0} className="space-y-5 rounded-2xl border p-4 md:p-5">
+            <div className="space-y-5 rounded-2xl border p-4 md:p-5">
               <div><h2 className="text-lg font-semibold">Design craft</h2><p className="text-sm text-muted-foreground">The small decisions that make a system feel unmistakably itself.</p></div>
               <Field label="Body typography">
                 <select aria-label="Body typography" value={theme.font} onChange={(event) => update("font", event.target.value)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm">
@@ -382,7 +380,7 @@ export function SkinStudio() {
           )}
 
           {tab === "export" && (
-            <div id="skin-studio-panel-export" role="tabpanel" aria-labelledby="skin-studio-tab-export" tabIndex={0} className="space-y-4">
+            <div className="space-y-4">
               <div><h2 className="text-lg font-semibold">Package the visual identity</h2><p className="text-sm text-muted-foreground">Export design tokens, narrative metadata, and shadcn-compatible theme variables.</p></div>
               <div className="flex gap-2 rounded-xl bg-muted p-1">
                 <button type="button" aria-pressed={format === "css"} onClick={() => setFormat("css")} className={`flex-1 rounded-lg px-3 py-2 text-sm ${format === "css" ? "bg-background shadow-sm" : "text-muted-foreground"}`}>CSS variables</button>
