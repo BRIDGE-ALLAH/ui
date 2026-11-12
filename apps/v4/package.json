@@ -25,7 +25,7 @@
     "validate:registries": "tsx --tsconfig ./tsconfig.scripts.json ./scripts/validate-registries.mts",
     "test:apps": "bun run ./scripts/build-test-app.mts",
     "postinstall": "fumadocs-mdx",
-    "test": "vitest run --config ../../vitest.config.ts lib/skin-system.test.ts",
+    "test": "vitest run --config ../../vitest.config.ts lib/skin-system.test.ts components/skin-artwork.test.tsx",
     "skin:contrast": "tsx --tsconfig ./tsconfig.scripts.json ./scripts/skin-contrast-report.ts"
   },
   "dependencies": {
