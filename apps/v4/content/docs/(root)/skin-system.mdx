@@ -5,39 +5,57 @@ description: Build a complete visual identity with narrative art direction, vect
 
 # Skin System
 
-A skin is a **visual language**, not a color preset. The Skin System combines semantic UI tokens with an art direction: narrative, typography, composition, surface treatment, shape grammar, texture, motion, and scalable vector artwork.
+A skin is a **narrative visual identity**, not a color preset. It combines a point of view with the full visual grammar of an interface: narrative, composition, artwork, semantic color, typography, shape, surface, texture, density, shadow, and motion.
 
-Open the [Skin Studio](/skin-studio) to create and preview an identity.
+Open the [Skin Studio](/skin-studio) to edit, save, and export an identity. Use [Skin Preview](/skin-preview) to explore the nine directions in a sample dashboard.
 
-## Think in art direction
+## The nine authored directions
 
-Every preset starts with a point of view. For example:
+The built-in presets preserve their own thesis, atmosphere, voice, keywords, composition, artwork, and craft values:
 
-- **Quiet editorial** — paper-like surfaces, measured typography, topographic linework, and generous hierarchy.
-- **Blue hour cinema** — expansive compositions, orbit diagrams, translucent depth, and atmospheric transitions.
-- **Living archive** — botanical linework, grounded colors, and patient organic forms.
-- **Signal / noise** — hard geometry, sharp edges, technical type, and vivid contrast.
+1. **Quiet Editorial**
+2. **Blue Hour Cinema**
+3. **Living Archive**
+4. **Soft Surrealism**
+5. **Prismatic Field**
+6. **Printed Matter**
+7. **Quiet Instrument**
+8. **Night Theatre**
+9. **Signal / Noise**
 
-These are starting narratives. In the studio, edit the thesis, atmosphere, and voice to give a system its own character.
+These are not interchangeable palettes. Each direction is an authored starting point that can be adapted into a custom visual identity.
 
-## What changes when a skin changes?
+## Visual grammar
 
-The system has several layers:
-
-| Layer | What it controls |
+| Dimension | Supported values or behavior |
 | --- | --- |
 | Narrative | Title, thesis, atmosphere, voice, and keywords |
 | Composition | Editorial, cinematic, instrument, or gallery |
-| Artwork | Botanical, orbit, topographic, geometry, collage, or stained-glass SVG |
-| Color language | Light/dark semantic tokens for all core shadcn surfaces and states |
-| Typography | Body and display font stacks plus heading tracking |
-| Shape | Soft, sharp, pill, or cut geometry |
-| Surface | Paper, glass, matte, or outline treatment |
-| Texture and motion | Paper/grain/mesh texture and still/slow/kinetic transitions |
+| Artwork | Botanical, orbit, topographic, geometry, collage, stained-glass, or none |
+| Typography | Body font stack, display/heading font stack, heading tracking |
+| Shape | Soft, sharp, pill, or cut |
+| Surface | Paper, glass, matte, or outline |
+| Texture | Paper, grain, mesh, or none |
+| Density | Comfortable or compact |
+| Shadow | Soft, medium, sharp, or none |
+| Motion | Still, slow, or kinetic; reduced-motion preference overrides non-essential animation |
+| Geometry | Shared radius and component shape variables |
 
-## Reusable API
+## Semantic token contract
 
-Wrap an application region in `SkinProvider` to apply saved tokens and expose a shared `useSkin` hook:
+The current contract contains 41 semantic tokens. The same token keys are available in light and dark maps and flow through runtime styles, CSS export, registry JSON, and Studio token controls.
+
+- **Core surfaces:** `background`, `foreground`, `card`, `card-foreground`, `popover`, `popover-foreground`.
+- **Actions and states:** `primary`, `primary-foreground`, `secondary`, `secondary-foreground`, `muted`, `muted-foreground`, `accent`, `accent-foreground`, `destructive`, `destructive-foreground`, `border`, `input`, `ring`.
+- **Charts:** `chart-1` through `chart-5`.
+- **Sidebar:** `sidebar`, `sidebar-foreground`, `sidebar-primary`, `sidebar-primary-foreground`, `sidebar-accent`, `sidebar-accent-foreground`, `sidebar-border`, `sidebar-ring`.
+- **Extended surfaces:** `surface`, `surface-foreground`, `code`, `code-foreground`, `code-highlight`, `code-number`, `selection`, `selection-foreground`, and `overlay`.
+
+Prefer semantic utilities such as `bg-background`, `text-foreground`, `border-border`, `ring-ring`, `bg-sidebar`, and `bg-overlay`. Do not hardcode preset names or add one-off component colors for a specific skin.
+
+## Runtime API
+
+Wrap the region that should inherit a visual identity in `SkinProvider`:
 
 ```tsx
 import { SkinProvider } from "@/components/skin-provider"
@@ -47,18 +65,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 }
 ```
 
-Select a curated direction programmatically:
+Read or change the active skin through `useSkin`:
 
 ```tsx
-import { SkinProvider } from "@/components/skin-provider"
+import { useSkin } from "@/components/skin-provider"
 import { SKIN_PRESETS } from "@/lib/skin-system"
 
-export function BrandExperience({ children }: { children: React.ReactNode }) {
-  return <SkinProvider theme={SKIN_PRESETS[2]}>{children}</SkinProvider>
+export function SkinSwitcher() {
+  const { skin, setSkin } = useSkin()
+
+  return (
+    <button onClick={() => setSkin(SKIN_PRESETS[2])}>
+      Current identity: {skin.label}
+    </button>
+  )
 }
 ```
 
-Use vector artwork and surfaces as composition primitives rather than baking images into a theme:
+A `theme` prop supplies a provider theme and opts out of automatic storage/event hydration. Treat it as parent-owned state: update the prop when the parent changes the identity. Without that prop, the provider hydrates from browser storage and listens for same-tab and cross-tab changes.
+
+Use vector artwork and surfaces as composition primitives:
 
 ```tsx
 import { SkinArtwork } from "@/components/skin-artwork"
@@ -66,28 +92,94 @@ import { SkinHero, SkinSurface } from "@/components/skin-components"
 
 export function EditorialPanel() {
   return (
-    <SkinHero
-      eyebrow="Field notes / 01"
-      title="Make room for better ideas."
-      description="A branded hero whose artwork follows the active art direction."
-      artwork="botanical"
-    />
+    <SkinSurface>
+      <SkinHero
+        eyebrow="Field notes / 01"
+        title="Make room for better ideas."
+        description="A branded hero whose artwork follows the active art direction."
+        artwork="botanical"
+      />
+      <SkinArtwork
+        variant="botanical"
+        title="Branching botanical linework"
+        description="A branching stem and leaves express organic growth."
+      />
+    </SkinSurface>
   )
 }
 ```
 
-`SkinArtwork` renders responsive inline SVG. The artwork remains crisp at every size and can inherit its color from CSS. Available variants are `botanical`, `orbit`, `topographic`, `geometry`, `collage`, `stained-glass`, and `none`.
+`SkinArtwork` is decorative and hidden from assistive technology by default. Supply both a meaningful `title` and `description` when the artwork conveys information. The SVG export includes a title, description, explicit dimensions, viewBox, and selected-mode color.
 
-## Apply, save, and export
+## Draft, save, and apply
 
-The v4 site root is wrapped in `SkinProvider`, so saving a visual identity in Skin Studio updates the whole documentation website—not just the preview. The current theme is stored in browser-local storage. Mounted providers listen for studio changes and update in the same tab, and the provider respects the app's resolved light/dark mode. Use the same provider in another app to carry the identity into that product.
+Skin Studio separates the editor draft from the active provider theme:
 
-- **CSS variables** export the semantic token contract and art-direction variables.
-- **Registry JSON** exports a shadcn `registry:theme` item.
-- **Import JSON** accepts this system's `SkinTheme` shape and shadcn registry theme token maps.
+1. Editing fields, choosing a preset, or importing JSON changes the **draft preview**.
+2. Switching Studio sections does not discard that draft.
+3. **Save visual identity** validates and normalizes the draft, persists it as the active skin, and notifies provider consumers.
+4. Reset and replacement of a dirty draft require confirmation. A browser before-unload warning is used when supported.
+5. Studio status distinguishes an unsaved draft, a custom item saved in the library, and a saved/applied identity.
 
-The Skin Studio preview is isolated so experiments do not silently replace the site's global theme. Applying a skin to a product area is an explicit choice: wrap that area with `SkinProvider`, then use `SkinSurface` and `SkinArtwork` where expressive composition is required.
+The dashboard preview uses demo data only. Creating a demo project changes local component state and does not create a server record or survive a page reload.
 
-## Accessibility and production notes
+## Browser persistence and synchronization
 
-Motion is reduced when the user's operating system requests reduced motion. SVG artwork is decorative by default and can be given an accessible title when it conveys meaning. Validate generated colors for contrast and review the exported CSS before replacing production tokens.
+The Skin System uses browser-local storage; it does not provide server persistence or cloud synchronization.
+
+| Data | Storage key | Contract |
+| --- | --- | --- |
+| Active skin | `shadcn-skin` | Normalized `SkinTheme` JSON |
+| Custom skin library | `shadcn-custom-skins` | `{ schemaVersion: 1, skins: SkinTheme[] }` |
+
+- Active skin changes are broadcast in the same tab with the `shadcn-skin-change` custom event.
+- Other tabs synchronize through the browser `storage` event for the active skin key, including key removal or storage clear.
+- If browser storage is blocked, in-memory updates can still work but will not persist.
+- The custom library is limited to 100 skins and 512 KB. Custom names are lowercase slugs and must be unique; built-in preset names cannot be stored as custom entries.
+- Import JSON is limited to 256 KB. Legacy unversioned `SkinTheme` objects remain accepted; versioned theme/registry data must use schema version 1.
+
+## Import and export
+
+- **Import JSON** accepts a `SkinTheme` object or a shadcn registry theme JSON token map. Input is parsed and validated before it replaces the draft.
+- **CSS export** emits light/dark semantic tokens and craft variables as CSS.
+- **Registry JSON export** creates a shadcn `registry:theme` item and preserves art-direction/craft metadata.
+- **SVG export** downloads the selected art direction as a self-contained accessible SVG. Directions with no artwork show a clear no-artwork message.
+
+Import does not automatically apply a skin. Review the draft and save it to update the active provider.
+
+## CSS scoping and application integration
+
+The provider root exposes `data-skin` and the active art-direction attributes. Skin-specific effects and dashboard showcase styles are scoped beneath that provider subtree. Use the shared semantic tokens and primitives rather than selectors that target a preset name globally.
+
+The v4 application root uses `SkinProvider`, so saving a skin in Studio updates the active application theme. A nested provider can scope a different identity to a product region.
+
+## Accessibility and contrast
+
+- Preserve keyboard access, visible focus, accessible names, selected states, and status announcements.
+- Use semantic foreground/background pairs; do not assume a decorative border needs the same contrast treatment as a control boundary.
+- The contrast audit checks 15 text pairs at 4.5:1 and 8 non-text/focus/chart pairs at 3:1 for all nine presets in both modes.
+- Run the reproducible report with `pnpm --filter=v4 skin:contrast`.
+- Run the focused Skin System and artwork tests with `pnpm --filter=v4 test`.
+- Respect `prefers-reduced-motion: reduce`; still/slow/kinetic differences must not carry essential information.
+
+## Validation commands
+
+From the repository root:
+
+```bash
+pnpm --filter=v4 lint
+pnpm --filter=v4 typecheck
+pnpm --filter=v4 test
+pnpm --filter=v4 skin:contrast
+pnpm --filter=v4 build
+```
+
+A command is not considered passed until it has actually run and its result is recorded in the corresponding pull request or CI run. See the QA matrices in `SKIN-STUDIO-QA.md` and `SKIN-DASHBOARD-QA.md` for manual viewport, keyboard, screen-reader, and interaction verification.
+
+## Known limitations
+
+- Persistence is browser-local; there is no account sync, server API, or cross-device custom library.
+- Storage may be unavailable in private or restricted browser contexts; in-memory changes can still be used during the current page session.
+- The `theme` provider prop opts out of automatic storage/event hydration.
+- Browser before-unload prompts are best-effort and controlled by the browser.
+- Visual regression screenshots and manual screen-reader/browser checks must be recorded before a production release.
