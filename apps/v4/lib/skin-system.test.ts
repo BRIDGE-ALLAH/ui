@@ -164,13 +164,14 @@ describe("Skin System pure utilities", () => {
   })
 
   it("covers every application semantic token in presets, styles, and registry exports", () => {
-    expect(SKIN_TOKEN_LABELS).toHaveLength(40)
+    expect(SKIN_TOKEN_LABELS).toHaveLength(41)
     for (const preset of SKIN_PRESETS) {
       for (const { key } of SKIN_TOKEN_LABELS) {
         expect(preset.light[key]).toBeTruthy()
         expect(preset.dark[key]).toBeTruthy()
       }
       const style = skinToStyle(preset, "light") as Record<string, string>
+      expect(style["--overlay"]).toBe(preset.light.overlay)
       const registry = skinToRegistryItem(preset)
       for (const { key } of SKIN_TOKEN_LABELS) {
         const cssName = key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`).replace(/chart([1-5])$/, "chart-$1")
