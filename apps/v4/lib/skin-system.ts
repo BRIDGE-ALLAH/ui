@@ -45,10 +45,10 @@ const neutralLight: SkinTokens = {
   popover:"#ffffff",popoverForeground:"#171717",primary:"#171717",primaryForeground:"#fafafa",
   secondary:"#f5f5f5",secondaryForeground:"#262626",muted:"#f5f5f5",mutedForeground:"#737373",
   accent:"#f5f5f5",accentForeground:"#262626",destructive:"#dc2626",destructiveForeground:"#ffffff",
-  border:"#e5e5e5",input:"#949494",ring:"#767676",sidebar:"#fafafa",sidebarForeground:"#171717",
-  chart1:"#2563eb",chart2:"#16a34a",chart3:"#d97706",chart4:"#1d4ed8",chart5:"#1e40af",
+  border:"#e5e5e5",input:"#8a8a8a",ring:"#767676",sidebar:"#fafafa",sidebarForeground:"#171717",
+  chart1:"#2563eb",chart2:"#15803d",chart3:"#b45309",chart4:"#1d4ed8",chart5:"#1e40af",
   sidebarPrimary:"#171717",sidebarPrimaryForeground:"#fafafa",sidebarAccent:"#f5f5f5",
-  sidebarAccentForeground:"#262626",sidebarBorder:"#e5e5e5",sidebarRing:"#a3a3a3",
+  sidebarAccentForeground:"#262626",sidebarBorder:"#e5e5e5",sidebarRing:"#767676",
   surface:"#fafafa",surfaceForeground:"#171717",code:"#fafafa",codeForeground:"#262626",
   codeHighlight:"#f5f5f5",codeNumber:"#737373",selection:"#171717",selectionForeground:"#ffffff",
 }
@@ -57,10 +57,10 @@ const neutralDark: SkinTokens = {
   popover:"#262626",popoverForeground:"#fafafa",primary:"#fafafa",primaryForeground:"#262626",
   secondary:"#404040",secondaryForeground:"#fafafa",muted:"#404040",mutedForeground:"#a3a3a3",
   accent:"#404040",accentForeground:"#fafafa",destructive:"#dc2626",destructiveForeground:"#ffffff",
-  border:"#404040",input:"#666666",ring:"#737373",sidebar:"#202020",sidebarForeground:"#fafafa",
+  border:"#404040",input:"#8a8a8a",ring:"#8a8a8a",sidebar:"#202020",sidebarForeground:"#fafafa",
   chart1:"#60a5fa",chart2:"#4ade80",chart3:"#fbbf24",chart4:"#93c5fd",chart5:"#bfdbfe",
   sidebarPrimary:"#fafafa",sidebarPrimaryForeground:"#262626",sidebarAccent:"#404040",
-  sidebarAccentForeground:"#fafafa",sidebarBorder:"#404040",sidebarRing:"#737373",
+  sidebarAccentForeground:"#fafafa",sidebarBorder:"#404040",sidebarRing:"#8a8a8a",
   surface:"#262626",surfaceForeground:"#fafafa",code:"#262626",codeForeground:"#fafafa",
   codeHighlight:"#404040",codeNumber:"#a3a3a3",selection:"#fafafa",selectionForeground:"#262626",
 }
@@ -95,8 +95,8 @@ function palette(
     name:label.toLowerCase().replace(/[^a-z0-9]+/g,"-"),label,
     radius:10,font:"Inter, ui-sans-serif, system-ui, sans-serif",
     density:"comfortable",shadow:"soft",artDirection,
-    light:{...neutralLight,background,foreground,primary,primaryForeground,ring:primary},
-    dark:{...neutralDark,background:darkBackground,foreground:darkForeground,primary:darkPrimary,primaryForeground:darkPrimaryForeground,ring:darkPrimary},
+    light:{...neutralLight,background,foreground,primary,primaryForeground,ring:neutralLight.ring},
+    dark:{...neutralDark,background:darkBackground,foreground:darkForeground,primary:darkPrimary,primaryForeground:darkPrimaryForeground,ring:neutralDark.ring},
   }
 }
 export const SKIN_PRESETS:SkinTheme[]=[
