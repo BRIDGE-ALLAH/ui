@@ -255,6 +255,7 @@ describe("Skin System pure utilities", () => {
     expect(DEFAULT_SKIN.light.background).not.toBe("#fefefe")
     expect(DEFAULT_SKIN.name).toBe("neutral")
 
+    expect(buildCustomSkin(DEFAULT_SKIN, "neutral", "Shadow Neutral").success).toBe(false)
     const duplicate = buildCustomSkin(created.data, "quiet-editorial-copy-2", "Quiet Editorial Copy 2")
     expect(duplicate.success).toBe(true)
     if (duplicate.success) {
