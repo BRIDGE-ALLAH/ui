@@ -178,15 +178,38 @@ export function SkinStudio() {
       setNotice("This art direction has no vector artwork to export.")
       return
     }
+
     const artwork = source.cloneNode(true) as SVGSVGElement
-    artwork.setAttribute("xmlns", "http://www.w3.org/2000/svg")
+    const namespace = "http://www.w3.org/2000/svg"
+    const titleId = "skin-artwork-export-title"
+    const descriptionId = "skin-artwork-export-description"
+
+    artwork.setAttribute("xmlns", namespace)
     artwork.setAttribute("width", "1440")
     artwork.setAttribute("height", "840")
+    artwork.setAttribute("viewBox", source.getAttribute("viewBox") || "0 0 720 420")
+    artwork.setAttribute("preserveAspectRatio", source.getAttribute("preserveAspectRatio") || "xMidYMid meet")
+    artwork.setAttribute("role", "img")
+    artwork.setAttribute("aria-labelledby", titleId)
+    artwork.setAttribute("aria-describedby", descriptionId)
+    artwork.removeAttribute("aria-hidden")
+    artwork.removeAttribute("aria-label")
     artwork.removeAttribute("class")
-    artwork.setAttribute("style", "color: " + normalized[mode].primary + ";")
+    artwork.setAttribute("style", `color: ${normalized[mode].primary};`)
+
+    artwork.querySelectorAll(":scope > title, :scope > desc").forEach((node) => node.remove())
+    const title = document.createElementNS(namespace, "title")
+    title.setAttribute("id", titleId)
+    title.textContent = `${normalized.label} — ${direction.name}`
+    const description = document.createElementNS(namespace, "desc")
+    description.setAttribute("id", descriptionId)
+    description.textContent = direction.narrative.thesis
+    artwork.insertBefore(description, artwork.firstChild)
+    artwork.insertBefore(title, description)
+
     const markup = new XMLSerializer().serializeToString(artwork)
     downloadFile(`${theme.name}-artwork.svg`, markup, "image/svg+xml;charset=utf-8")
-    setNotice("Scalable vector artwork downloaded as SVG.")
+    setNotice("Accessible, self-contained SVG artwork downloaded for the selected color mode.")
   }
 
   async function copyOutput() {
