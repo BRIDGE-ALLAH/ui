@@ -1,0 +1,113 @@
+---
+title: Skin System Contributor Contract
+description: Design and implementation rules for contributors and autonomous coding agents working on the narrative visual identity engine.
+---
+
+# Skin System Contributor Contract
+
+This guide complements the [Skin System user documentation](/docs/skin-system). It defines the implementation and review contract for maintainers and local coding agents.
+
+## Mission
+
+A skin is a **narrative visual identity**, not a palette preset. Preserve the authored relationship between narrative, composition, vector artwork, semantic color, typography, shape, surface, texture, density, shadow, and motion.
+
+The nine built-in identities are Quiet Editorial, Blue Hour Cinema, Living Archive, Soft Surrealism, Prismatic Field, Printed Matter, Quiet Instrument, Night Theatre, and Signal / Noise. Never collapse them into interchangeable color themes or replace their authored thesis, atmosphere, voice, keywords, or visual grammar.
+
+## Design rules
+
+1. Preserve all nine identities and their authored metadata.
+2. Prefer semantic tokens and shared primitives over custom component styling.
+3. Never add preset-name conditional branches such as `if (skin.name === "quiet-editorial")` in shared UI components.
+4. Respect light/dark mode, responsive behavior, keyboard access, accessible names, visible focus, readable contrast, and `prefers-reduced-motion`.
+5. Artwork is decorative by default. Give meaningful SVG artwork a title and description; do not make essential information depend on artwork or animation.
+6. Keep each change bounded to the linked issue. Do not duplicate an abstraction or modify unrelated application components.
+
+## Token and CSS contract
+
+The current semantic token contract contains 41 keys. CSS variables use kebab-case; TypeScript token properties use camelCase.
+
+When adding or changing a token, audit all of these locations together:
+
+- `SkinTokens` and light/dark neutral defaults in `apps/v4/lib/skin-system.ts`.
+- `SKIN_TOKEN_LABELS` so Studio can edit the token.
+- The CSS-name map used by CSS and registry exports.
+- `skinToStyle`, `skinToCss`, and `skinToRegistryItem`.
+- Theme validation and import/export round-trip tests.
+- `@theme inline` mappings in `apps/v4/app/globals.css` when a Tailwind utility is required.
+
+Keep visual effects inside the provider subtree. Scope selectors with the active `[data-skin]` root or the `.skin-root` wrapper. Do not introduce global effects that leak into pages outside the selected SkinProvider.
+
+Use semantic roles such as `bg-background`, `text-foreground`, `border-border`, `ring-ring`, `bg-sidebar`, and `bg-overlay`. Avoid raw palette utilities and one-off hardcoded colors for component states.
+
+## Shared runtime modules
+
+| Module | Ownership |
+| --- | --- |
+| `apps/v4/lib/skin-system.ts` | SkinTheme types, nine presets, token maps, validation, migration, CSS/registry serialization, custom library contract |
+| `apps/v4/components/skin-provider.tsx` | Provider scope, active-skin persistence, same-/cross-tab synchronization, `useSkin` |
+| `apps/v4/components/skin-studio.tsx` | Draft/save/apply lifecycle, custom library management, import/export |
+| `apps/v4/components/skin-artwork.tsx` | Inline SVG artwork and accessible title/description API |
+| `apps/v4/components/skin-components.tsx` | Shared surfaces and hero composition primitives |
+| `apps/v4/components/skin-dashboard-preview.tsx` | Deterministic demo dashboard and skin preview interactions |
+| `apps/v4/app/globals.css` | Semantic token mapping, provider-scoped visual effects, responsive and reduced-motion rules |
+| `apps/v4/content/docs/(root)/skin-system.mdx` | User-facing runtime and usage documentation |
+
+Inspect the current implementation before changing a module. The table describes ownership, not permission to refactor unrelated code.
+
+## Persistence and compatibility
+
+- Active skin storage key: `shadcn-skin`.
+- Custom library storage key: `shadcn-custom-skins`, schema version 1, maximum 100 skins and 512 KB.
+- Preserve compatibility with legacy unversioned SkinTheme data unless a migration issue explicitly changes that contract.
+- Custom skins must be normalized independent copies. Built-in preset definitions are immutable.
+- Browser storage is local only; do not imply account sync, cloud persistence, or cross-device sharing.
+- When a provider receives a `theme` prop, automatic storage/event hydration is disabled. Document parent ownership clearly.
+
+## Quality and accessibility requirements
+
+- Text contrast: at least 4.5:1 for normal text.
+- Meaningful UI boundaries, focus indicators, and chart graphics: at least 3:1 where they convey required information.
+- Verify all nine presets in both light and dark modes.
+- Preserve keyboard operation and selected/current state for interactive controls.
+- Use polite status announcements for save/import/export feedback.
+- Decorative SVGs must not create noisy screen-reader output or inert keyboard stops.
+- Reduced-motion mode must disable or minimize non-essential animation and transitions while preserving information.
+- Test responsive layouts at 320, 375, 768, 1024, 1280, and 1440 px where the issue affects a responsive surface.
+
+## Required validation
+
+Run applicable commands from the repository root and report the exact command, working directory, and result:
+
+```bash
+pnpm --filter=v4 lint
+pnpm --filter=v4 typecheck
+pnpm --filter=v4 test
+pnpm --filter=v4 skin:contrast
+pnpm --filter=v4 build
+```
+
+Not every issue needs every command, but the PR must explain which checks were run and why any check was skipped. A command that was not executed must never be reported as passing.
+
+For UI changes, include the relevant viewport matrix, keyboard/screen-reader notes, and screenshots or visual regression evidence. For token/schema changes, include unit tests and import/export round-trip coverage.
+
+## Autonomous agent hand-off
+
+For each small agent session:
+
+1. Read the parent epic, the exact child issue, this contributor contract, and the user-facing Skin System guide.
+2. Inspect the existing implementation and current tests before editing.
+3. Work only within the child issue's scope. If blocked by another issue, report the exact dependency and stop.
+4. Preserve existing IDs, public APIs, preset narratives, and storage compatibility unless the issue explicitly authorizes a migration.
+5. Add focused tests and update docs when public behavior or contracts change.
+6. Open a small PR that links the child issue and states changed files, design decisions, commands/results, screenshots where applicable, and remaining limitations.
+7. Do not close an issue until every acceptance criterion has evidence. Do not claim build, test, accessibility, or visual checks passed unless they actually ran.
+
+## Pull request review checklist
+
+- [ ] Change is limited to the linked issue.
+- [ ] No preset-specific styling branch or unrelated abstraction was introduced.
+- [ ] All nine identities and light/dark maps remain intact.
+- [ ] CSS effects remain scoped to the provider subtree.
+- [ ] Responsive, keyboard, contrast, and reduced-motion behavior are addressed.
+- [ ] Tests and docs cover changed public behavior.
+- [ ] Exact validation evidence and known limitations are recorded.
