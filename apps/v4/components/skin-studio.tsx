@@ -402,7 +402,7 @@ export function SkinStudio() {
               {notice && <p role="status" aria-live="polite" className="text-xs text-muted-foreground">{notice}</p>}
             </div>
           )}
-          {notice && tab !== "export" && <p role="status" className="text-xs text-muted-foreground">{notice}</p>}
+          {notice && tab !== "export" && <p role="status" aria-live="polite" className="text-xs text-muted-foreground">{notice}</p>}
         </section>
 
         <aside className="min-w-0 space-y-3 xl:sticky xl:top-24 xl:self-start">
