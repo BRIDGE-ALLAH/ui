@@ -8,6 +8,7 @@ import {
   SKIN_STORAGE_KEY,
   normalizeSkin,
   skinToStyle,
+  validateSkinTheme,
   type SkinTheme,
 } from "@/lib/skin-system"
 
@@ -15,10 +16,27 @@ type SkinContextValue = {
   skin: SkinTheme
   setSkin: (skin: SkinTheme) => void
 }
+
 const SkinContext = React.createContext<SkinContextValue | null>(null)
 
 function notifySkinChange(skin: SkinTheme) {
   window.dispatchEvent(new CustomEvent("shadcn-skin-change", { detail: skin }))
+}
+
+function readStoredSkin(): SkinTheme {
+  try {
+    const value = window.localStorage.getItem(SKIN_STORAGE_KEY)
+    if (!value) return DEFAULT_SKIN
+    const result = validateSkinTheme(JSON.parse(value) as unknown)
+    return result.success ? result.data : DEFAULT_SKIN
+  } catch {
+    return DEFAULT_SKIN
+  }
+}
+
+function getEventSkin(event: Event): SkinTheme | null {
+  const result = validateSkinTheme((event as CustomEvent<unknown>).detail)
+  return result.success ? result.data : null
 }
 
 export function SkinProvider({
@@ -29,48 +47,50 @@ export function SkinProvider({
   theme?: SkinTheme
 }) {
   const { resolvedTheme } = useTheme()
-  const [skin, setSkinState] = React.useState<SkinTheme>(() => normalizeSkin(theme ?? DEFAULT_SKIN))
+  const [skin, setSkinState] = React.useState<SkinTheme>(() =>
+    normalizeSkin(theme ?? DEFAULT_SKIN)
+  )
 
   React.useEffect(() => {
     if (theme) {
       setSkinState(normalizeSkin(theme))
       return
     }
-    const load = () => {
-      try {
-        const value = localStorage.getItem(SKIN_STORAGE_KEY)
-        if (value) setSkinState(normalizeSkin(JSON.parse(value) as SkinTheme))
-      } catch {
-        setSkinState(DEFAULT_SKIN)
-      }
+
+    const load = () => setSkinState(readStoredSkin())
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === SKIN_STORAGE_KEY || event.key === null) load()
     }
     const onCustom = (event: Event) => {
-      const next = (event as CustomEvent<SkinTheme>).detail
-      if (next?.light && next?.dark) setSkinState(normalizeSkin(next))
+      const next = getEventSkin(event)
+      if (next) setSkinState(next)
     }
+
     load()
-    window.addEventListener("storage", load)
+    window.addEventListener("storage", onStorage)
     window.addEventListener("shadcn-skin-change", onCustom)
     return () => {
-      window.removeEventListener("storage", load)
+      window.removeEventListener("storage", onStorage)
       window.removeEventListener("shadcn-skin-change", onCustom)
     }
   }, [theme])
 
   const setSkin = React.useCallback((next: SkinTheme) => {
-    const normalized = normalizeSkin(next)
-    setSkinState(normalized)
+    const result = validateSkinTheme(next)
+    if (!result.success) return
+    setSkinState(result.data)
     try {
-      localStorage.setItem(SKIN_STORAGE_KEY, JSON.stringify(normalized))
-      notifySkinChange(normalized)
+      window.localStorage.setItem(SKIN_STORAGE_KEY, JSON.stringify(result.data))
     } catch {
-      // The provider still updates for this session when storage is blocked.
+      // In-memory updates remain available when browser storage is blocked.
     }
+    notifySkinChange(result.data)
   }, [])
 
   const mode = resolvedTheme === "dark" ? "dark" : "light"
   const value = React.useMemo(() => ({ skin, setSkin }), [skin, setSkin])
   const direction = skin.artDirection ?? DEFAULT_SKIN.artDirection!
+
   return (
     <SkinContext.Provider value={value}>
       <div
@@ -94,24 +114,16 @@ export function useSkin() {
   const [fallbackSkin, setFallbackSkin] = React.useState<SkinTheme>(DEFAULT_SKIN)
 
   React.useEffect(() => {
-    try {
-      const value = localStorage.getItem(SKIN_STORAGE_KEY)
-      if (value) setFallbackSkin(normalizeSkin(JSON.parse(value) as SkinTheme))
-    } catch {
-      setFallbackSkin(DEFAULT_SKIN)
+    const load = () => setFallbackSkin(readStoredSkin())
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === SKIN_STORAGE_KEY || event.key === null) load()
     }
     const onCustom = (event: Event) => {
-      const next = (event as CustomEvent<SkinTheme>).detail
-      if (next?.light && next?.dark) setFallbackSkin(normalizeSkin(next))
+      const next = getEventSkin(event)
+      if (next) setFallbackSkin(next)
     }
-    const onStorage = () => {
-      try {
-        const value = localStorage.getItem(SKIN_STORAGE_KEY)
-        if (value) setFallbackSkin(normalizeSkin(JSON.parse(value) as SkinTheme))
-      } catch {
-        setFallbackSkin(DEFAULT_SKIN)
-      }
-    }
+
+    load()
     window.addEventListener("shadcn-skin-change", onCustom)
     window.addEventListener("storage", onStorage)
     return () => {
@@ -121,14 +133,15 @@ export function useSkin() {
   }, [])
 
   const setFallback = React.useCallback((next: SkinTheme) => {
-    const normalized = normalizeSkin(next)
-    setFallbackSkin(normalized)
+    const result = validateSkinTheme(next)
+    if (!result.success) return
+    setFallbackSkin(result.data)
     try {
-      localStorage.setItem(SKIN_STORAGE_KEY, JSON.stringify(normalized))
-      notifySkinChange(normalized)
+      window.localStorage.setItem(SKIN_STORAGE_KEY, JSON.stringify(result.data))
     } catch {
-      // Ignore storage failures; local state remains available.
+      // In-memory updates remain available when browser storage is blocked.
     }
+    notifySkinChange(result.data)
   }, [])
 
   return context ?? { skin: fallbackSkin, setSkin: setFallback }
