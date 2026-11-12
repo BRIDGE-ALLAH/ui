@@ -27,7 +27,11 @@ export type SkinTokens = {
   secondary: string; secondaryForeground: string; muted: string; mutedForeground: string
   accent: string; accentForeground: string; destructive: string; destructiveForeground: string
   border: string; input: string; ring: string; sidebar: string; sidebarForeground: string
-  chart1: string; chart2: string; chart3: string
+  chart1: string; chart2: string; chart3: string; chart4: string; chart5: string
+  sidebarPrimary: string; sidebarPrimaryForeground: string; sidebarAccent: string
+  sidebarAccentForeground: string; sidebarBorder: string; sidebarRing: string
+  surface: string; surfaceForeground: string; code: string; codeForeground: string
+  codeHighlight: string; codeNumber: string; selection: string; selectionForeground: string
 }
 export type SkinTheme = {
   name: string; label: string; description?: string; radius: number; font: string
@@ -42,7 +46,11 @@ const neutralLight: SkinTokens = {
   secondary:"#f5f5f5",secondaryForeground:"#262626",muted:"#f5f5f5",mutedForeground:"#737373",
   accent:"#f5f5f5",accentForeground:"#262626",destructive:"#dc2626",destructiveForeground:"#ffffff",
   border:"#e5e5e5",input:"#e5e5e5",ring:"#a3a3a3",sidebar:"#fafafa",sidebarForeground:"#171717",
-  chart1:"#2563eb",chart2:"#16a34a",chart3:"#d97706",
+  chart1:"#2563eb",chart2:"#16a34a",chart3:"#d97706",chart4:"#1d4ed8",chart5:"#1e40af",
+  sidebarPrimary:"#171717",sidebarPrimaryForeground:"#fafafa",sidebarAccent:"#f5f5f5",
+  sidebarAccentForeground:"#262626",sidebarBorder:"#e5e5e5",sidebarRing:"#a3a3a3",
+  surface:"#fafafa",surfaceForeground:"#171717",code:"#fafafa",codeForeground:"#262626",
+  codeHighlight:"#f5f5f5",codeNumber:"#737373",selection:"#171717",selectionForeground:"#ffffff",
 }
 const neutralDark: SkinTokens = {
   background:"#171717",foreground:"#fafafa",card:"#262626",cardForeground:"#fafafa",
@@ -50,7 +58,11 @@ const neutralDark: SkinTokens = {
   secondary:"#404040",secondaryForeground:"#fafafa",muted:"#404040",mutedForeground:"#a3a3a3",
   accent:"#404040",accentForeground:"#fafafa",destructive:"#ef4444",destructiveForeground:"#ffffff",
   border:"#404040",input:"#525252",ring:"#737373",sidebar:"#202020",sidebarForeground:"#fafafa",
-  chart1:"#60a5fa",chart2:"#4ade80",chart3:"#fbbf24",
+  chart1:"#60a5fa",chart2:"#4ade80",chart3:"#fbbf24",chart4:"#93c5fd",chart5:"#bfdbfe",
+  sidebarPrimary:"#fafafa",sidebarPrimaryForeground:"#262626",sidebarAccent:"#404040",
+  sidebarAccentForeground:"#fafafa",sidebarBorder:"#404040",sidebarRing:"#737373",
+  surface:"#262626",surfaceForeground:"#fafafa",code:"#262626",codeForeground:"#fafafa",
+  codeHighlight:"#404040",codeNumber:"#a3a3a3",selection:"#fafafa",selectionForeground:"#262626",
 }
 export const DEFAULT_ART_DIRECTION: SkinArtDirection = {
   name:"Quiet editorial",
@@ -118,6 +130,14 @@ export const SKIN_TOKEN_LABELS:{key:keyof SkinTokens;label:string}[]=[
   {key:"destructiveForeground",label:"Destructive foreground"},{key:"border",label:"Border"},{key:"input",label:"Input"},
   {key:"ring",label:"Focus ring"},{key:"sidebar",label:"Sidebar"},{key:"sidebarForeground",label:"Sidebar foreground"},
   {key:"chart1",label:"Chart 1"},{key:"chart2",label:"Chart 2"},{key:"chart3",label:"Chart 3"},
+  {key:"chart4",label:"Chart 4"},{key:"chart5",label:"Chart 5"},
+  {key:"sidebarPrimary",label:"Sidebar primary"},{key:"sidebarPrimaryForeground",label:"Sidebar primary foreground"},
+  {key:"sidebarAccent",label:"Sidebar accent"},{key:"sidebarAccentForeground",label:"Sidebar accent foreground"},
+  {key:"sidebarBorder",label:"Sidebar border"},{key:"sidebarRing",label:"Sidebar ring"},
+  {key:"surface",label:"Surface"},{key:"surfaceForeground",label:"Surface foreground"},
+  {key:"code",label:"Code surface"},{key:"codeForeground",label:"Code foreground"},
+  {key:"codeHighlight",label:"Code highlight"},{key:"codeNumber",label:"Code number"},
+  {key:"selection",label:"Selection"},{key:"selectionForeground",label:"Selection foreground"},
 ]
 const TOKEN_NAMES:Record<keyof SkinTokens,string>={
   background:"background",foreground:"foreground",card:"card",cardForeground:"card-foreground",
@@ -125,7 +145,12 @@ const TOKEN_NAMES:Record<keyof SkinTokens,string>={
   secondary:"secondary",secondaryForeground:"secondary-foreground",muted:"muted",mutedForeground:"muted-foreground",
   accent:"accent",accentForeground:"accent-foreground",destructive:"destructive",destructiveForeground:"destructive-foreground",
   border:"border",input:"input",ring:"ring",sidebar:"sidebar",sidebarForeground:"sidebar-foreground",
-  chart1:"chart-1",chart2:"chart-2",chart3:"chart-3",
+  chart1:"chart-1",chart2:"chart-2",chart3:"chart-3",chart4:"chart-4",chart5:"chart-5",
+  sidebarPrimary:"sidebar-primary",sidebarPrimaryForeground:"sidebar-primary-foreground",
+  sidebarAccent:"sidebar-accent",sidebarAccentForeground:"sidebar-accent-foreground",
+  sidebarBorder:"sidebar-border",sidebarRing:"sidebar-ring",
+  surface:"surface",surfaceForeground:"surface-foreground",code:"code",codeForeground:"code-foreground",
+  codeHighlight:"code-highlight",codeNumber:"code-number",selection:"selection",selectionForeground:"selection-foreground",
 }
 export type SkinValidationResult =
   | { success: true; data: SkinTheme }
@@ -338,7 +363,14 @@ export function skinToStyle(themeInput:SkinTheme,mode:SkinMode){
     "--primary":t.primary,"--primary-foreground":t.primaryForeground,"--secondary":t.secondary,"--secondary-foreground":t.secondaryForeground,
     "--muted":t.muted,"--muted-foreground":t.mutedForeground,"--accent":t.accent,"--accent-foreground":t.accentForeground,
     "--destructive":t.destructive,"--destructive-foreground":t.destructiveForeground,"--border":t.border,"--input":t.input,"--ring":t.ring,
-    "--sidebar":t.sidebar,"--sidebar-foreground":t.sidebarForeground,"--chart-1":t.chart1,"--chart-2":t.chart2,"--chart-3":t.chart3,
+    "--sidebar":t.sidebar,"--sidebar-foreground":t.sidebarForeground,
+    "--sidebar-primary":t.sidebarPrimary,"--sidebar-primary-foreground":t.sidebarPrimaryForeground,
+    "--sidebar-accent":t.sidebarAccent,"--sidebar-accent-foreground":t.sidebarAccentForeground,
+    "--sidebar-border":t.sidebarBorder,"--sidebar-ring":t.sidebarRing,
+    "--chart-1":t.chart1,"--chart-2":t.chart2,"--chart-3":t.chart3,"--chart-4":t.chart4,"--chart-5":t.chart5,
+    "--surface":t.surface,"--surface-foreground":t.surfaceForeground,"--code":t.code,
+    "--code-foreground":t.codeForeground,"--code-highlight":t.codeHighlight,"--code-number":t.codeNumber,
+    "--selection":t.selection,"--selection-foreground":t.selectionForeground,
     "--skin-shadow":theme.shadow==="none"?"none":theme.shadow==="sharp"?"0 1px 2px rgb(0 0 0 / .16)":theme.shadow==="medium"?"0 8px 24px rgb(0 0 0 / .12)":"0 4px 16px rgb(0 0 0 / .07)",
   }
   return css as CSSProperties
