@@ -94,6 +94,7 @@
   --color-code-number: var(--code-number);
   --color-selection: var(--selection);
   --color-selection-foreground: var(--selection-foreground);
+  --color-overlay: var(--overlay);
 }
 
 :root {
@@ -181,6 +182,7 @@
   --code-number: oklch(0.72 0 0);
   --selection: oklch(0.922 0 0);
   --selection-foreground: oklch(0.205 0 0);
+  --overlay: rgb(0 0 0 / 0.5);
 }
 
 @layer base {
