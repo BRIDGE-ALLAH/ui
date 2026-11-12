@@ -32,6 +32,10 @@ This is a release-readiness checklist and draft changelog only. It does not auth
 - Browser viewport screenshots, screen-reader checks, and SVG reopen verification remain pending until a browser-capable run is recorded.
 - No follow-up PR or CI result should be described as passing until it has actually run.
 
+## CI foundation
+
+- [ ] [#32 — v4 production build CI check](https://github.com/BRIDGE-ALLAH/ui/pull/32) — confirm the workflow actually runs and the production build succeeds on the final integrated branch.
+
 ## Required implementation PRs
 
 Merge and validate in dependency order:
