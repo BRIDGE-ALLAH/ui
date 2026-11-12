@@ -138,6 +138,7 @@ export const SKIN_TOKEN_LABELS:{key:keyof SkinTokens;label:string}[]=[
   {key:"code",label:"Code surface"},{key:"codeForeground",label:"Code foreground"},
   {key:"codeHighlight",label:"Code highlight"},{key:"codeNumber",label:"Code number"},
   {key:"selection",label:"Selection"},{key:"selectionForeground",label:"Selection foreground"},
+  {key:"overlay",label:"Overlay scrim"},
 ]
 const TOKEN_NAMES:Record<keyof SkinTokens,string>={
   background:"background",foreground:"foreground",card:"card",cardForeground:"card-foreground",
@@ -150,7 +151,7 @@ const TOKEN_NAMES:Record<keyof SkinTokens,string>={
   sidebarAccent:"sidebar-accent",sidebarAccentForeground:"sidebar-accent-foreground",
   sidebarBorder:"sidebar-border",sidebarRing:"sidebar-ring",
   surface:"surface",surfaceForeground:"surface-foreground",code:"code",codeForeground:"code-foreground",
-  codeHighlight:"code-highlight",codeNumber:"code-number",selection:"selection",selectionForeground:"selection-foreground",
+  codeHighlight:"code-highlight",codeNumber:"code-number",selection:"selection",selectionForeground:"selection-foreground",overlay:"overlay",
 }
 export type SkinValidationResult =
   | { success: true; data: SkinTheme }
