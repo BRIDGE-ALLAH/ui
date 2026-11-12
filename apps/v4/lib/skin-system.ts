@@ -127,6 +127,149 @@ const TOKEN_NAMES:Record<keyof SkinTokens,string>={
   border:"border",input:"input",ring:"ring",sidebar:"sidebar",sidebarForeground:"sidebar-foreground",
   chart1:"chart-1",chart2:"chart-2",chart3:"chart-3",
 }
+export type SkinValidationResult =
+  | { success: true; data: SkinTheme }
+  | { success: false; error: string }
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value)
+
+const isSafeCssValue = (value: unknown): value is string =>
+  typeof value === "string" &&
+  value.length > 0 &&
+  value.length <= 256 &&
+  !/[;{}<>\u0000-\u001f]/.test(value)
+
+const isOneOf = <T extends string>(value: unknown, values: readonly T[]): value is T =>
+  typeof value === "string" && values.includes(value as T)
+
+export function validateSkinTheme(input: unknown): SkinValidationResult {
+  if (!isRecord(input)) return { success: false, error: "Skin data must be a JSON object." }
+  if (input.schemaVersion !== undefined && input.schemaVersion !== 1) {
+    return { success: false, error: "Unsupported SkinTheme schema version." }
+  }
+  if (typeof input.name !== "string" || !/^[a-z0-9][a-z0-9-]{0,63}$/.test(input.name)) {
+    return { success: false, error: "Skin name must be a lowercase slug (1–64 characters)." }
+  }
+  if (typeof input.label !== "string" || input.label.trim().length < 1 || input.label.length > 80) {
+    return { success: false, error: "Skin label must contain 1–80 characters." }
+  }
+  if (input.radius !== undefined && (typeof input.radius !== "number" || !Number.isFinite(input.radius) || input.radius < 0 || input.radius > 64)) {
+    return { success: false, error: "Skin radius must be a number between 0 and 64." }
+  }
+  if (input.font !== undefined && !isSafeCssValue(input.font)) {
+    return { success: false, error: "Font value contains unsupported characters." }
+  }
+  if (input.density !== undefined && !isOneOf(input.density, ["comfortable", "compact"] as const)) {
+    return { success: false, error: "Unknown density value." }
+  }
+  if (input.shadow !== undefined && !isOneOf(input.shadow, ["soft", "medium", "sharp", "none"] as const)) {
+    return { success: false, error: "Unknown shadow value." }
+  }
+  for (const mode of ["light", "dark"] as const) {
+    if (input[mode] !== undefined && !isRecord(input[mode])) {
+      return { success: false, error: `${mode} tokens must be an object.` }
+    }
+    if (isRecord(input[mode])) {
+      for (const [key, value] of Object.entries(input[mode])) {
+        if (!(key in neutralLight) || !isSafeCssValue(value)) {
+          return { success: false, error: `Invalid ${mode} token: ${key}.` }
+        }
+      }
+    }
+  }
+  if (input.artDirection !== undefined && !isRecord(input.artDirection)) {
+    return { success: false, error: "Art direction must be an object." }
+  }
+  if (isRecord(input.artDirection)) {
+    const direction = input.artDirection
+    const enums: [string, readonly string[]][] = [
+      ["artwork", ["botanical", "orbit", "topographic", "geometry", "collage", "stained-glass", "none"]],
+      ["composition", ["editorial", "cinematic", "instrument", "gallery"]],
+      ["texture", ["paper", "grain", "mesh", "none"]],
+      ["shape", ["soft", "sharp", "pill", "cut"]],
+      ["surface", ["paper", "glass", "matte", "outline"]],
+      ["motion", ["still", "slow", "kinetic"]],
+      ["tracking", ["tight", "normal", "wide"]],
+    ]
+    for (const [key, values] of enums) {
+      if (direction[key] !== undefined && !isOneOf(direction[key], values)) {
+        return { success: false, error: `Invalid art direction field: ${key}.` }
+      }
+    }
+    for (const key of ["name", "headingFont"] as const) {
+      if (direction[key] !== undefined && !isSafeCssValue(direction[key])) {
+        return { success: false, error: `Invalid art direction field: ${key}.` }
+      }
+    }
+    if (direction.narrative !== undefined) {
+      if (!isRecord(direction.narrative)) return { success: false, error: "Narrative must be an object." }
+      for (const key of ["title", "thesis", "atmosphere", "voice"] as const) {
+        const value = direction.narrative[key]
+        if (value !== undefined && (typeof value !== "string" || value.length > 500)) {
+          return { success: false, error: `Invalid narrative field: ${key}.` }
+        }
+      }
+      const keywords = direction.narrative.keywords
+      if (keywords !== undefined && (!Array.isArray(keywords) || keywords.length > 20 || !keywords.every((word) => typeof word === "string" && word.length <= 40))) {
+        return { success: false, error: "Narrative keywords must be an array of at most 20 short strings." }
+      }
+    }
+  }
+  return { success: true, data: normalizeSkin(input as SkinTheme) }
+}
+
+export function parseSkinImport(json: string): SkinValidationResult {
+  if (json.length > 256_000) return { success: false, error: "Import file exceeds the 256 KB limit." }
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(json)
+  } catch {
+    return { success: false, error: "Invalid JSON syntax." }
+  }
+  if (!isRecord(parsed)) return { success: false, error: "Import must be a JSON object." }
+
+  if (parsed.cssVars !== undefined) {
+    if (!isRecord(parsed.cssVars)) return { success: false, error: "Registry cssVars must be an object." }
+    const cssVars = parsed.cssVars
+    const toCamel = (tokens: unknown) => {
+      if (tokens === undefined) return {}
+      if (!isRecord(tokens)) throw new Error("Registry token map must be an object.")
+      return Object.fromEntries(Object.entries(tokens).map(([key, value]) => [
+        key.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase()),
+        value,
+      ]))
+    }
+    try {
+      const meta = isRecord(parsed.meta) ? parsed.meta : {}
+      const artDirection = typeof meta["skin-art-direction"] === "string"
+        ? JSON.parse(meta["skin-art-direction"])
+        : DEFAULT_SKIN.artDirection
+      const craft = typeof meta["skin-craft"] === "string" ? JSON.parse(meta["skin-craft"]) : {}
+      if (!isRecord(craft)) return { success: false, error: "Registry craft metadata must be an object." }
+      const theme = isRecord(cssVars.theme) ? cssVars.theme : {}
+      const candidate = {
+        ...DEFAULT_SKIN,
+        name: parsed.name,
+        label: parsed.title ?? parsed.name,
+        font: theme["font-sans"] ?? DEFAULT_SKIN.font,
+        radius: typeof theme.radius === "string" && theme.radius.endsWith("rem")
+          ? Number.parseFloat(theme.radius) * 16
+          : DEFAULT_SKIN.radius,
+        artDirection,
+        density: craft.density ?? DEFAULT_SKIN.density,
+        shadow: craft.shadow ?? DEFAULT_SKIN.shadow,
+        light: { ...DEFAULT_SKIN.light, ...toCamel(cssVars.light) },
+        dark: { ...DEFAULT_SKIN.dark, ...toCamel(cssVars.dark) },
+      }
+      return validateSkinTheme(candidate)
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : "Invalid registry metadata." }
+    }
+  }
+  return validateSkinTheme(parsed)
+}
+
 export function normalizeSkin(theme:SkinTheme):SkinTheme {
   return {...DEFAULT_SKIN,...theme,light:{...DEFAULT_SKIN.light,...theme.light},dark:{...DEFAULT_SKIN.dark,...theme.dark},artDirection:{...DEFAULT_ART_DIRECTION,...theme.artDirection,narrative:{...DEFAULT_ART_DIRECTION.narrative,...theme.artDirection?.narrative}}}
 }
