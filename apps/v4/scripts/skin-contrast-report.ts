@@ -28,6 +28,7 @@ const pairs: Pair[] = [
   { foreground: "selectionForeground", background: "selection", minimum: 4.5, category: "text" },
   { foreground: "input", background: "background", minimum: 3, category: "non-text" },
   { foreground: "ring", background: "background", minimum: 3, category: "non-text" },
+  { foreground: "sidebarRing", background: "sidebar", minimum: 3, category: "non-text" },
   { foreground: "chart1", background: "background", minimum: 3, category: "non-text" },
   { foreground: "chart2", background: "background", minimum: 3, category: "non-text" },
   { foreground: "chart3", background: "background", minimum: 3, category: "non-text" },
