@@ -10,6 +10,8 @@ import {
   SKIN_TOKEN_LABELS,
   SKIN_STORAGE_KEY,
   normalizeSkin,
+  parseSkinImport,
+  validateSkinTheme,
   skinToCss,
   skinToRegistryItem,
   skinToStyle,
@@ -79,7 +81,10 @@ export function SkinStudio() {
   React.useEffect(() => {
     try {
       const saved = localStorage.getItem(SKIN_STORAGE_KEY)
-      if (saved) setTheme(normalizeSkin(JSON.parse(saved) as SkinTheme))
+      if (saved) {
+        const result = validateSkinTheme(JSON.parse(saved) as unknown)
+        setTheme(result.success ? result.data : DEFAULT_SKIN)
+      }
     } catch {
       setTheme(DEFAULT_SKIN)
     }
@@ -159,7 +164,12 @@ export function SkinStudio() {
   }
 
   function saveTheme() {
-    const next = normalizeSkin(theme)
+    const result = validateSkinTheme(theme)
+    if (!result.success) {
+      setNotice(result.error)
+      return
+    }
+    const next = result.data
     setTheme(next)
     try {
       localStorage.setItem(SKIN_STORAGE_KEY, JSON.stringify(next))
@@ -171,38 +181,13 @@ export function SkinStudio() {
   }
 
   function importTheme() {
-    try {
-      const parsed = JSON.parse(importValue) as Partial<SkinTheme> & {
-        title?: string
-        cssVars?: { light?: Record<string, string>; dark?: Record<string, string>; theme?: Record<string, string> }
-        meta?: Record<string, string>
-      }
-      const fromRegistry = (tokens?: Record<string, string>) => Object.fromEntries(
-        Object.entries(tokens ?? {}).map(([key, value]) => [key.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase()), value])
-      )
-      const importedArt = parsed.meta?.["skin-art-direction"]
-        ? JSON.parse(parsed.meta["skin-art-direction"]) as SkinArtDirection
-        : DEFAULT_SKIN.artDirection
-      const importedCraft = parsed.meta?.["skin-craft"]
-        ? JSON.parse(parsed.meta["skin-craft"]) as Partial<Pick<SkinTheme, "density" | "shadow">>
-        : {}
-      const candidate = parsed.cssVars ? {
-        ...DEFAULT_SKIN,
-        ...importedCraft,
-        name: String(parsed.name ?? "imported-skin"),
-        label: String(parsed.title ?? parsed.name ?? "Imported skin"),
-        font: parsed.cssVars.theme?.["font-sans"] ?? DEFAULT_SKIN.font,
-        artDirection: importedArt,
-        light: { ...DEFAULT_SKIN.light, ...fromRegistry(parsed.cssVars.light) },
-        dark: { ...DEFAULT_SKIN.dark, ...fromRegistry(parsed.cssVars.dark) },
-        radius: Number.parseFloat(parsed.cssVars.theme?.radius ?? "0.625rem") * 16,
-      } : { ...DEFAULT_SKIN, ...parsed }
-      if (!candidate.light || !candidate.dark) throw new Error("Missing light/dark tokens")
-      setTheme(normalizeSkin(candidate as SkinTheme))
-      setNotice("Theme imported. Review the art direction, then save it.")
-    } catch {
-      setNotice("Could not import that JSON. Use a SkinTheme object or shadcn registry theme JSON.")
+    const result = parseSkinImport(importValue)
+    if (!result.success) {
+      setNotice(`Import rejected: ${result.error}`)
+      return
     }
+    setTheme(result.data)
+    setNotice("Theme imported and validated. Review the art direction, then save it.")
   }
 
   const spacing = normalized.density === "compact" ? "p-3" : "p-5"
