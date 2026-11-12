@@ -214,6 +214,7 @@ describe("Skin System pure utilities", () => {
     const nonTextPairs: [keyof SkinTokens, keyof SkinTokens][] = [
       ["input", "background"],
       ["ring", "background"],
+      ["sidebarRing", "sidebar"],
       ["chart1", "background"],
       ["chart2", "background"],
       ["chart3", "background"],
