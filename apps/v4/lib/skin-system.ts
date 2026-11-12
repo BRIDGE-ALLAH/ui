@@ -237,7 +237,7 @@ export function parseSkinImport(json: string): SkinValidationResult {
       if (tokens === undefined) return {}
       if (!isRecord(tokens)) throw new Error("Registry token map must be an object.")
       return Object.fromEntries(Object.entries(tokens).map(([key, value]) => [
-        key.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase()),
+        key.replace(/-([a-z0-9])/g, (_, letter: string) => letter.toUpperCase()),
         value,
       ]))
     }
