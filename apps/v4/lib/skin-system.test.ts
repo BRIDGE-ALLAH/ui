@@ -150,7 +150,7 @@ describe("Skin System pure utilities", () => {
         expect(preset.light[key]).toBeTruthy()
         expect(preset.dark[key]).toBeTruthy()
       }
-      const style = skinToStyle(preset, "light")
+      const style = skinToStyle(preset, "light") as Record<string, string>
       const registry = skinToRegistryItem(preset)
       for (const { key } of SKIN_TOKEN_LABELS) {
         const cssName = key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`).replace(/chart([1-5])$/, "chart-$1")
