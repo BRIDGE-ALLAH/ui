@@ -4,11 +4,16 @@ import * as React from "react"
 import { IconCheck, IconCopy, IconDownload, IconMoon, IconSun, IconUpload } from "@tabler/icons-react"
 
 import { SkinArtwork } from "@/components/skin-artwork"
+import { useSkin } from "@/components/skin-provider"
 import {
   DEFAULT_SKIN,
   SKIN_PRESETS,
   SKIN_TOKEN_LABELS,
   SKIN_STORAGE_KEY,
+  SKIN_CUSTOM_STORAGE_KEY,
+  buildCustomSkin,
+  parseCustomSkinLibrary,
+  serializeCustomSkinLibrary,
   normalizeSkin,
   parseSkinImport,
   validateSkinTheme,
@@ -70,7 +75,10 @@ function Choice<T extends string>({
 }
 
 export function SkinStudio() {
+  const { skin: appliedSkin, setSkin: applySkin } = useSkin()
   const [theme, setTheme] = React.useState<SkinTheme>(DEFAULT_SKIN)
+  const [savedTheme, setSavedTheme] = React.useState<SkinTheme>(DEFAULT_SKIN)
+  const [customSkins, setCustomSkins] = React.useState<SkinTheme[]>([])
   const [mode, setMode] = React.useState<SkinMode>("light")
   const [tab, setTab] = React.useState<StudioTab>("identity")
   const [format, setFormat] = React.useState<ExportFormat>("css")
@@ -83,7 +91,15 @@ export function SkinStudio() {
       const saved = localStorage.getItem(SKIN_STORAGE_KEY)
       if (saved) {
         const result = validateSkinTheme(JSON.parse(saved) as unknown)
-        setTheme(result.success ? result.data : DEFAULT_SKIN)
+        const initial = result.success ? result.data : DEFAULT_SKIN
+        setTheme(initial)
+        setSavedTheme(initial)
+      }
+      const savedCustom = localStorage.getItem(SKIN_CUSTOM_STORAGE_KEY)
+      if (savedCustom) {
+        const result = parseCustomSkinLibrary(savedCustom)
+        if (result.success) setCustomSkins(result.data)
+        else setNotice(result.error)
       }
     } catch {
       setTheme(DEFAULT_SKIN)
@@ -91,7 +107,28 @@ export function SkinStudio() {
   }, [])
 
   const normalized = React.useMemo(() => normalizeSkin(theme), [theme])
+  const isDirty = React.useMemo(
+    () => JSON.stringify(normalizeSkin(theme)) !== JSON.stringify(normalizeSkin(savedTheme)),
+    [theme, savedTheme]
+  )
+  const isApplied = React.useMemo(
+    () => JSON.stringify(normalizeSkin(theme)) === JSON.stringify(normalizeSkin(appliedSkin)),
+    [theme, appliedSkin]
+  )
+  const isCustomSaved = customSkins.some(
+    (skin) => skin.name === theme.name && JSON.stringify(normalizeSkin(skin)) === JSON.stringify(normalized)
+  )
   const direction = normalized.artDirection!
+  React.useEffect(() => {
+    if (!isDirty) return
+    const warnBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault()
+      event.returnValue = ""
+    }
+    window.addEventListener("beforeunload", warnBeforeUnload)
+    return () => window.removeEventListener("beforeunload", warnBeforeUnload)
+  }, [isDirty])
+
   const output = React.useMemo(
     () => format === "css" ? skinToCss(normalized) : JSON.stringify(skinToRegistryItem(normalized), null, 2),
     [format, normalized]
@@ -163,6 +200,87 @@ export function SkinStudio() {
     }
   }
 
+  function persistCustomSkins(next: SkinTheme[]) {
+    try {
+      localStorage.setItem(SKIN_CUSTOM_STORAGE_KEY, serializeCustomSkinLibrary(next))
+      setCustomSkins(next)
+      return true
+    } catch {
+      setNotice("Browser storage is unavailable. Custom skin library changes were not saved.")
+      return false
+    }
+  }
+
+  function uniqueSkinName(base: string) {
+    const slug = base.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48) || "custom-skin"
+    const existing = new Set([...SKIN_PRESETS, ...customSkins].map((skin) => skin.name))
+    let candidate = slug
+    let suffix = 2
+    while (existing.has(candidate)) {
+      candidate = `${slug}-${suffix}`
+      suffix += 1
+    }
+    return candidate
+  }
+
+  function replaceDraft(next: SkinTheme, action: string) {
+    if (isDirty && !window.confirm("Discard your unsaved Skin Studio changes and " + action + "?")) return false
+    setTheme(normalizeSkin(next))
+    return true
+  }
+
+  function createCustomFrom(source: SkinTheme, kind: "custom" | "copy") {
+    const name = uniqueSkinName(`${source.name}-${kind}`)
+    const label = kind === "copy" ? `${source.label} Copy` : `${source.label} Custom`
+    const result = buildCustomSkin(source, name, label)
+    if (!result.success) {
+      setNotice(result.error)
+      return
+    }
+    const next = [...customSkins, result.data]
+    if (!persistCustomSkins(next)) return
+    setTheme(result.data)
+    setNotice(`${label} created and saved to your browser library. Save it to apply it to the app.`)
+  }
+
+  function renameCustom(source: SkinTheme) {
+    const label = window.prompt("Rename custom visual identity", source.label)
+    if (label === null) return
+    const nextLabel = label.trim()
+    const name = nextLabel.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 64)
+    if (!nextLabel || !name) {
+      setNotice("A custom skin name must contain letters or numbers.")
+      return
+    }
+    const collision = [...SKIN_PRESETS, ...customSkins].some(
+      (skin) => skin.name === name && skin.name !== source.name
+    )
+    if (collision) {
+      setNotice("That custom skin name is already in use. Choose a different name.")
+      return
+    }
+    const result = buildCustomSkin(source, name, nextLabel)
+    if (!result.success) {
+      setNotice(result.error)
+      return
+    }
+    const next = customSkins.map((skin) => skin.name === source.name ? result.data : skin)
+    if (!persistCustomSkins(next)) return
+    if (theme.name === source.name) setTheme(result.data)
+    if (savedTheme.name === source.name) setSavedTheme(result.data)
+    setNotice("Custom skin renamed.")
+  }
+
+  function deleteCustom(source: SkinTheme) {
+    if (!window.confirm(`Delete "${source.label}" from your custom skin library?`)) return
+    const next = customSkins.filter((skin) => skin.name !== source.name)
+    if (!persistCustomSkins(next)) return
+    if (theme.name === source.name) setTheme(DEFAULT_SKIN)
+    if (savedTheme.name === source.name) setSavedTheme(DEFAULT_SKIN)
+    if (appliedSkin.name === source.name) applySkin(DEFAULT_SKIN)
+    setNotice("Custom skin deleted from this browser.")
+  }
+
   function saveTheme() {
     const result = validateSkinTheme(theme)
     if (!result.success) {
@@ -170,14 +288,24 @@ export function SkinStudio() {
       return
     }
     const next = result.data
-    setTheme(next)
-    try {
-      localStorage.setItem(SKIN_STORAGE_KEY, JSON.stringify(next))
-      window.dispatchEvent(new CustomEvent("shadcn-skin-change", { detail: next }))
-      setNotice("Visual identity saved in this browser. SkinProvider consumers update immediately.")
-    } catch {
-      setNotice("Browser storage is unavailable. Your current studio preview is still active.")
+    const isBuiltIn = SKIN_PRESETS.some((preset) => preset.name === next.name)
+    let nextCustom = customSkins
+    if (!isBuiltIn) {
+      nextCustom = customSkins.some((skin) => skin.name === next.name)
+        ? customSkins.map((skin) => skin.name === next.name ? next : skin)
+        : [...customSkins, next]
+      if (!persistCustomSkins(nextCustom)) return
     }
+    applySkin(next)
+    setTheme(next)
+    setSavedTheme(next)
+    setNotice("Visual identity saved and applied in this browser.")
+  }
+
+  function resetTheme() {
+    if (!window.confirm("Reset the current draft to the canonical default skin?")) return
+    setTheme(DEFAULT_SKIN)
+    setNotice("Draft reset to the canonical default. Save to apply it.")
   }
 
   function importTheme() {
@@ -186,8 +314,8 @@ export function SkinStudio() {
       setNotice(`Import rejected: ${result.error}`)
       return
     }
-    setTheme(result.data)
-    setNotice("Theme imported and validated. Review the art direction, then save it.")
+    if (!replaceDraft(result.data, "import this theme")) return
+    setNotice("Theme imported and validated. Review the draft, then save it to apply.")
   }
 
   const spacing = normalized.density === "compact" ? "p-3" : "p-5"
