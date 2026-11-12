@@ -24,6 +24,15 @@ This matrix is the repeatable manual verification contract for `/skin-studio`. I
 - [ ] Decorative artwork and non-interactive preview samples do not enter the tab order or accessibility tree.
 - [ ] Focus remains visible and follows a logical order.
 
+## Custom-library storage contract
+
+- Storage key: `shadcn-custom-skins`.
+- Payload: `{ "schemaVersion": 1, "skins": SkinTheme[] }`.
+- Maximum payload size: 512 KB; maximum library size: 100 skins.
+- Each skin must pass the shared SkinTheme validator, use a lowercase slug name, and have a unique name.
+- Built-in preset names are rejected from the custom library; custom records are independent normalized copies.
+- Storage is browser-local only; there is no cloud synchronization or server persistence.
+
 ## Draft and custom-library checks
 
 - [ ] Editing any field changes the Studio status to an unsaved draft.
