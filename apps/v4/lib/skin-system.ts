@@ -31,7 +31,7 @@ export type SkinTokens = {
   sidebarPrimary: string; sidebarPrimaryForeground: string; sidebarAccent: string
   sidebarAccentForeground: string; sidebarBorder: string; sidebarRing: string
   surface: string; surfaceForeground: string; code: string; codeForeground: string
-  codeHighlight: string; codeNumber: string; selection: string; selectionForeground: string
+  codeHighlight: string; codeNumber: string; selection: string; selectionForeground: string; overlay: string
 }
 export type SkinTheme = {
   name: string; label: string; description?: string; radius: number; font: string
@@ -50,7 +50,7 @@ const neutralLight: SkinTokens = {
   sidebarPrimary:"#171717",sidebarPrimaryForeground:"#fafafa",sidebarAccent:"#f5f5f5",
   sidebarAccentForeground:"#262626",sidebarBorder:"#e5e5e5",sidebarRing:"#767676",
   surface:"#fafafa",surfaceForeground:"#171717",code:"#fafafa",codeForeground:"#262626",
-  codeHighlight:"#f5f5f5",codeNumber:"#737373",selection:"#171717",selectionForeground:"#ffffff",
+  codeHighlight:"#f5f5f5",codeNumber:"#6b6b6b",selection:"#171717",selectionForeground:"#ffffff",overlay:"rgb(0 0 0 / 0.5)",
 }
 const neutralDark: SkinTokens = {
   background:"#171717",foreground:"#fafafa",card:"#262626",cardForeground:"#fafafa",
@@ -62,7 +62,7 @@ const neutralDark: SkinTokens = {
   sidebarPrimary:"#fafafa",sidebarPrimaryForeground:"#262626",sidebarAccent:"#404040",
   sidebarAccentForeground:"#fafafa",sidebarBorder:"#404040",sidebarRing:"#8a8a8a",
   surface:"#262626",surfaceForeground:"#fafafa",code:"#262626",codeForeground:"#fafafa",
-  codeHighlight:"#404040",codeNumber:"#a3a3a3",selection:"#fafafa",selectionForeground:"#262626",
+  codeHighlight:"#404040",codeNumber:"#b3b3b3",selection:"#fafafa",selectionForeground:"#262626",overlay:"rgb(0 0 0 / 0.5)",
 }
 export const DEFAULT_ART_DIRECTION: SkinArtDirection = {
   name:"Quiet editorial",
@@ -138,6 +138,7 @@ export const SKIN_TOKEN_LABELS:{key:keyof SkinTokens;label:string}[]=[
   {key:"code",label:"Code surface"},{key:"codeForeground",label:"Code foreground"},
   {key:"codeHighlight",label:"Code highlight"},{key:"codeNumber",label:"Code number"},
   {key:"selection",label:"Selection"},{key:"selectionForeground",label:"Selection foreground"},
+  {key:"overlay",label:"Overlay scrim"},
 ]
 const TOKEN_NAMES:Record<keyof SkinTokens,string>={
   background:"background",foreground:"foreground",card:"card",cardForeground:"card-foreground",
@@ -150,7 +151,7 @@ const TOKEN_NAMES:Record<keyof SkinTokens,string>={
   sidebarAccent:"sidebar-accent",sidebarAccentForeground:"sidebar-accent-foreground",
   sidebarBorder:"sidebar-border",sidebarRing:"sidebar-ring",
   surface:"surface",surfaceForeground:"surface-foreground",code:"code",codeForeground:"code-foreground",
-  codeHighlight:"code-highlight",codeNumber:"code-number",selection:"selection",selectionForeground:"selection-foreground",
+  codeHighlight:"code-highlight",codeNumber:"code-number",selection:"selection",selectionForeground:"selection-foreground",overlay:"overlay",
 }
 export type SkinValidationResult =
   | { success: true; data: SkinTheme }
@@ -370,7 +371,7 @@ export function skinToStyle(themeInput:SkinTheme,mode:SkinMode){
     "--chart-1":t.chart1,"--chart-2":t.chart2,"--chart-3":t.chart3,"--chart-4":t.chart4,"--chart-5":t.chart5,
     "--surface":t.surface,"--surface-foreground":t.surfaceForeground,"--code":t.code,
     "--code-foreground":t.codeForeground,"--code-highlight":t.codeHighlight,"--code-number":t.codeNumber,
-    "--selection":t.selection,"--selection-foreground":t.selectionForeground,
+    "--selection":t.selection,"--selection-foreground":t.selectionForeground,"--overlay":t.overlay,
     "--skin-shadow":theme.shadow==="none"?"none":theme.shadow==="sharp"?"0 1px 2px rgb(0 0 0 / .16)":theme.shadow==="medium"?"0 8px 24px rgb(0 0 0 / .12)":"0 4px 16px rgb(0 0 0 / .07)",
   }
   return css as CSSProperties
