@@ -1,0 +1,97 @@
+name: Skin visual snapshots and pixel-diff
+
+on:
+  pull_request:
+    branches: ["*"]
+    paths:
+      - "apps/v4/components/skin-*.tsx"
+      - "apps/v4/lib/skin-system.ts"
+      - "apps/v4/app/globals.css"
+      - "apps/v4/scripts/capture-skin-visuals.mts"
+      - "apps/v4/scripts/diff-skin-visuals.mts"
+      - "apps/v4/visual/skin-system/baselines/*.png"
+      - ".github/workflows/skin-visual.yml"
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    name: Capture and diff Skin System visual matrix
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          version: 10.33.4
+          run_install: false
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build v4 registry
+        run: pnpm --filter=v4 registry:build
+
+      - name: Install Puppeteer Chrome
+        run: pnpm exec puppeteer browsers install chrome
+
+      - name: Start v4 development server
+        run: |
+          pnpm --filter=v4 dev > /tmp/skin-v4.log 2>&1 &
+          echo $! > /tmp/skin-v4.pid
+          ready=0
+          for attempt in {1..60}; do
+            if curl --fail --silent http://localhost:4000/skin-preview > /dev/null; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+          if [ "$ready" != "1" ]; then
+            cat /tmp/skin-v4.log
+            exit 1
+          fi
+
+      - name: Capture dashboard and Studio matrix
+        env:
+          SKIN_VISUAL_BASE_URL: http://localhost:4000
+        run: pnpm --filter=v4 visual:capture
+
+      - name: Run pixel-diff against committed baselines
+        id: pixel_diff
+        run: |
+          if [ -d "apps/v4/visual/skin-system/baselines" ] && [ "$(ls -A apps/v4/visual/skin-system/baselines/*.png 2>/dev/null | wc -l)" -gt 0 ]; then
+            pnpm --filter=v4 visual:diff
+          else
+            echo "No committed baselines found — skipping diff."
+            echo "To establish baselines:"
+            echo "  1. Run: pnpm --filter=v4 visual:capture -- --update-baselines"
+            echo "  2. Review all generated PNGs under apps/v4/visual/skin-system/baselines/"
+            echo "  3. Commit the reviewed baselines"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload diff images
+        if: always() && steps.pixel_diff.outputs.skip != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: skin-system-visual-diff
+          path: apps/v4/.artifacts/skin-system-diff
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload visual snapshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skin-system-visual-snapshots
+          path: apps/v4/.artifacts/skin-system
+          if-no-files-found: warn
+          retention-days: 14
