@@ -27,7 +27,8 @@
     "postinstall": "fumadocs-mdx",
     "test": "vitest run --config ../../vitest.config.ts lib/skin-system.test.ts components/skin-artwork.test.tsx",
     "skin:contrast": "tsx --tsconfig ./tsconfig.scripts.json ./scripts/skin-contrast-report.ts",
-    "visual:capture": "tsx --tsconfig ./tsconfig.scripts.json ./scripts/capture-skin-visuals.mts"
+    "visual:capture": "tsx --tsconfig ./tsconfig.scripts.json ./scripts/capture-skin-visuals.mts",
+    "visual:diff": "tsx --tsconfig ./tsconfig.scripts.json ./scripts/diff-skin-visuals.mts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "4.0.0-canary.66",
