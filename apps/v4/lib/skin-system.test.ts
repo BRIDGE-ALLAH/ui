@@ -91,7 +91,7 @@ describe("Skin System pure utilities", () => {
       shadow: "none",
       radius: 12,
     }
-    const style = skinToStyle(theme, "light")
+    const style = skinToStyle(theme, "light") as Record<string, string>
 
     expect(style["--background"]).toBe(theme.light.background)
     expect(style["--skin-density-factor"]).toBe("0.82")
@@ -99,7 +99,7 @@ describe("Skin System pure utilities", () => {
     expect(style["--radius"]).toBe("12px")
     expect(style["--skin-body-font"]).toBe(theme.font)
     expect(style["--skin-heading-font"]).toBe(theme.artDirection?.headingFont)
-    const darkStyle = skinToStyle(theme, "dark")
+    const darkStyle = skinToStyle(theme, "dark") as Record<string, string>
     expect(darkStyle["--background"]).toBe(theme.dark.background)
     expect(darkStyle["--sidebar-primary"]).toBe(theme.dark.sidebarPrimary)
     expect(darkStyle["--chart-5"]).toBe(theme.dark.chart5)
@@ -175,8 +175,8 @@ describe("Skin System pure utilities", () => {
       }
       const style = skinToStyle(preset, "light") as Record<string, string>
       expect(style["--overlay"]).toBe(preset.light.overlay)
-      expect(registry.cssVars.light.overlay).toBe(preset.light.overlay)
       const registry = skinToRegistryItem(preset)
+      expect(registry.cssVars.light.overlay).toBe(preset.light.overlay)
       for (const { key } of SKIN_TOKEN_LABELS) {
         const cssName = key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`).replace(/chart([1-5])$/, "chart-$1")
         expect(style[`--${cssName}`]).toBe(preset.light[key])
