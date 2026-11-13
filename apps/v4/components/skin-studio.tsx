@@ -477,7 +477,7 @@ export function SkinStudio() {
           {tab === "palette" && (
             <div className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div><h2 className="text-lg font-semibold">Semantic color language</h2><p className="text-sm text-muted-foreground">Color roles are mapped to shadcn's CSS variable contract.</p></div>
+                <div><h2 className="text-lg font-semibold">Semantic color language</h2><p className="text-sm text-muted-foreground">Color roles are mapped to shadcn&apos;s CSS variable contract.</p></div>
                 <div className="flex rounded-lg bg-muted p-1">
                   <button type="button" aria-pressed={mode === "light"} onClick={() => setMode("light")} className={`rounded-md px-3 py-1.5 text-sm ${mode === "light" ? "bg-background shadow-sm" : "text-muted-foreground"}`}>Light</button>
                   <button type="button" aria-pressed={mode === "dark"} onClick={() => setMode("dark")} className={`rounded-md px-3 py-1.5 text-sm ${mode === "dark" ? "bg-background shadow-sm" : "text-muted-foreground"}`}>Dark</button>
